@@ -4,7 +4,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Optional;
 
-final class Exit implements Command {
+final class Exit implements BuiltInCommand {
 
     @Override
     public BuiltIn type() {

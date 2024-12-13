@@ -1,28 +1,33 @@
 package io.codecrafters.shell;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Scanner;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 final class ShellTests {
 
     @Test
-    void givenNoInput_thenPromptPrinted() {
+    void givenNoInput_thenPromptPrinted() throws IOException {
         assertThat(executionResult("").output()).startsWith("$ ");
     }
 
     @Test
-    void givenInvalidCommand_thenInvalidCommandMessagePrinted() {
+    void givenInvalidCommand_thenInvalidCommandMessagePrinted() throws IOException {
         assertThat(executionResult("invalid_command").output()).contains("invalid_command: command not found");
     }
 
     @Test
-    void givenMultipleCommand_thenEachCommandEvaluated() {
+    void givenMultipleCommand_thenEachCommandEvaluated() throws IOException {
         assertThat(
             executionResult("""
                             invalid_command_1
@@ -34,43 +39,51 @@ final class ShellTests {
     }
 
     @Test
-    void givenExitBuiltin_thenShellExited() {
-        var executionResult = executionResult("""
-                                              exit 0
-                                              should_not_be_evaluated
-                                              """);
+    void givenExitBuiltin_thenShellExited() throws IOException {
+        var executionResult = executionResult(
+            """
+            exit 0
+            should_not_be_evaluated
+            """
+        );
         assertThat(executionResult.exitCode()).isZero();
         assertThat(executionResult.output()).doesNotContain("should_not_be_evaluated");
     }
 
     @Test
-    void givenEchoBuiltin_thenArgumentsPrinted() {
+    void givenEchoBuiltin_thenArgumentsPrinted() throws IOException {
         assertThat(executionResult("echo first second").output()).contains("first second");
     }
 
     @Test
-    void givenEchoBuiltin_thenEchoNotPrinted() {
+    void givenEchoBuiltin_thenEchoNotPrinted() throws IOException {
         assertThat(executionResult("echo first second").output()).doesNotContain("echo");
     }
 
     @Test
-    void givenTypeBuiltin_thenExistingBuiltinTypePrinted() {
+    void givenTypeBuiltin_thenExistingBuiltinTypePrinted() throws IOException {
         assertThat(executionResult("type exit").output()).contains("exit is a shell builtin");
     }
 
     @Test
-    void givenTypeBuiltin_thenItsTypePrinted() {
+    void givenTypeBuiltin_thenItsTypePrinted() throws IOException {
         assertThat(executionResult("type type").output()).contains("type is a shell builtin");
     }
 
     @Test
-    void givenTypeBuiltin_thenNotFoundCommandPrinted() {
+    void givenTypeBuiltin_thenNotFoundCommandPrinted() throws IOException {
         assertThat(executionResult("type invalid_command").output()).contains("invalid_command: not found");
     }
 
-    private ExecutionResult executionResult(String input) {
+    @Test
+    void givenTypeBuiltin_thenExecutableCommandPrinted(@TempDir Path directory) throws IOException {
+        var executable = Files.createFile(directory.resolve("executable"));
+        assertThat(executionResult("type executable", directory).output()).contains("executable is " + executable);
+    }
+
+    private ExecutionResult executionResult(String input, Path... executableCommandDirectories) throws IOException {
         var output = new ByteArrayOutputStream();
-        var exitCode = new Shell(new Scanner(input), new PrintStream(output)).execute();
+        var exitCode = new Shell(new Scanner(input), new PrintStream(output), Set.of(executableCommandDirectories)).execute();
         var string = output.toString(StandardCharsets.UTF_8);
         return new ExecutionResult(exitCode, string);
     }

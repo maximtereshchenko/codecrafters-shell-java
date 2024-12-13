@@ -5,16 +5,19 @@ import java.util.Set;
 
 final class BuiltInCommandFactory implements CommandFactory {
 
-    private final Set<Command> builtIns;
+    private final Set<BuiltInCommand> builtIns;
 
-    BuiltInCommandFactory(Set<Command> builtIns) {
+    BuiltInCommandFactory(Set<BuiltInCommand> builtIns) {
         this.builtIns = builtIns;
     }
 
     @Override
     public Optional<Command> command(String name) {
-        return builtIns.stream()
-            .filter(command -> command.type().name().equals(name))
-            .findAny();
+        for (var builtIn : builtIns) {
+            if (builtIn.type().name().equals(name)) {
+                return Optional.of(builtIn);
+            }
+        }
+        return Optional.empty();
     }
 }

@@ -1,12 +1,12 @@
 package io.codecrafters.shell;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
-final class Type implements Command {
+final class Type implements BuiltInCommand {
 
     private final Set<CommandFactory> other;
 
@@ -20,27 +20,42 @@ final class Type implements Command {
     }
 
     @Override
-    public Optional<Integer> execute(PrintStream output, List<String> arguments) {
-        var name = arguments.getFirst();
-        output.println(
-            name +
-            Stream.concat(
-                    commands(name),
-                    Stream.of(this)
-                )
-                .map(Command::type)
-                .map(BuiltIn::name)
-                .filter(commandName -> commandName.equals(name))
-                .findAny()
-                .map(commandFactory -> " is a shell builtin")
-                .orElse(": not found")
-        );
+    public Optional<Integer> execute(PrintStream output, List<String> arguments) throws IOException {
+        output.println(description(arguments.getFirst()));
         return Optional.empty();
     }
 
-    private Stream<Command> commands(String name) {
-        return other.stream()
-            .map(commandFactory -> commandFactory.command(name))
-            .flatMap(Optional::stream);
+    private String description(String name) throws IOException {
+        for (var commandFactory : other) {
+            var description = commandFactory.command(name)
+                .map(Command::type)
+                .flatMap(type -> description(type, name));
+            if (description.isPresent()) {
+                return description.get();
+            }
+        }
+        return name + ": not found";
+    }
+
+    private Optional<String> description(CommandType type, String name) {
+        return switch (type) {
+            case BuiltIn builtIn -> description(builtIn, name);
+            case Executable executable -> description(executable, name);
+        };
+    }
+
+    private Optional<String> description(BuiltIn builtIn, String name) {
+        if (!builtIn.name().equals(name)) {
+            return Optional.empty();
+        }
+        return Optional.of(builtIn.name() + " is a shell builtin");
+    }
+
+    private Optional<String> description(Executable executable, String name) {
+        var executableName = executable.path().getFileName().toString();
+        if (!executableName.equals(name)) {
+            return Optional.empty();
+        }
+        return Optional.of("%s is %s".formatted(executableName, executable.path()));
     }
 }
