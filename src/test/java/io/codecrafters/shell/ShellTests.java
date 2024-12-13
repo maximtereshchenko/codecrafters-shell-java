@@ -1,12 +1,13 @@
 package io.codecrafters.shell;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
-import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 final class ShellTests {
 
@@ -24,9 +25,9 @@ final class ShellTests {
     void givenMultipleCommand_thenEachCommandEvaluated() {
         assertThat(
             executionResult("""
-                invalid_command_1
-                invalid_command_2
-                """)
+                            invalid_command_1
+                            invalid_command_2
+                            """)
                 .output()
         )
             .contains("invalid_command_1: command not found", "invalid_command_2: command not found");
@@ -35,9 +36,9 @@ final class ShellTests {
     @Test
     void givenExitBuiltin_thenShellExited() {
         var executionResult = executionResult("""
-            exit 0
-            should_not_be_evaluated
-            """);
+                                              exit 0
+                                              should_not_be_evaluated
+                                              """);
         assertThat(executionResult.exitCode()).isZero();
         assertThat(executionResult.output()).doesNotContain("should_not_be_evaluated");
     }

@@ -6,5 +6,7 @@ import java.util.Optional;
 
 interface Command {
 
+    BuiltIn type();
+
     Optional<Integer> execute(PrintStream output, List<String> arguments);
 }

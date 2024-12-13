@@ -1,43 +1,46 @@
 package io.codecrafters.shell;
 
 import java.io.PrintStream;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-final class Type implements CommandFactory {
+final class Type implements Command {
 
-    private final Set<CommandFactory> otherCommandFactories;
+    private final Set<CommandFactory> other;
 
-    Type(Set<CommandFactory> otherCommandFactories) {
-        this.otherCommandFactories = otherCommandFactories;
+    Type(Set<CommandFactory> other) {
+        this.other = other;
     }
 
     @Override
-    public boolean hasName(String name) {
-        return name.equals("type");
+    public BuiltIn type() {
+        return new BuiltIn("type");
     }
 
     @Override
-    public Optional<Command> command(String name) {
-        if (!hasName(name)) {
-            return Optional.empty();
-        }
-        return Optional.of((output, arguments) -> printType(output, arguments.getFirst()));
-    }
-
-    private Optional<Integer> printType(PrintStream output, String name) {
+    public Optional<Integer> execute(PrintStream output, List<String> arguments) {
+        var name = arguments.getFirst();
         output.println(
             name +
-                Stream.concat(
-                        otherCommandFactories.stream(),
-                        Stream.of(this)
-                    )
-                    .filter(commandFactory -> commandFactory.hasName(name))
-                    .findAny()
-                    .map(commandFactory -> " is a shell builtin")
-                    .orElse(": not found")
+            Stream.concat(
+                    commands(name),
+                    Stream.of(this)
+                )
+                .map(Command::type)
+                .map(BuiltIn::name)
+                .filter(commandName -> commandName.equals(name))
+                .findAny()
+                .map(commandFactory -> " is a shell builtin")
+                .orElse(": not found")
         );
         return Optional.empty();
+    }
+
+    private Stream<Command> commands(String name) {
+        return other.stream()
+            .map(commandFactory -> commandFactory.command(name))
+            .flatMap(Optional::stream);
     }
 }

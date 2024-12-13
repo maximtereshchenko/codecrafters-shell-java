@@ -1,19 +1,18 @@
 package io.codecrafters.shell;
 
+import java.io.PrintStream;
+import java.util.List;
 import java.util.Optional;
 
-final class Exit implements CommandFactory {
+final class Exit implements Command {
 
     @Override
-    public boolean hasName(String name) {
-        return name.equals("exit");
+    public BuiltIn type() {
+        return new BuiltIn("exit");
     }
 
     @Override
-    public Optional<Command> command(String name) {
-        if (!hasName(name)) {
-            return Optional.empty();
-        }
-        return Optional.of((output, arguments) -> Optional.of(0));
+    public Optional<Integer> execute(PrintStream output, List<String> arguments) {
+        return Optional.of(0);
     }
 }

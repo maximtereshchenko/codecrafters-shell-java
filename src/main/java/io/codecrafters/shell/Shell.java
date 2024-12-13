@@ -1,17 +1,13 @@
 package io.codecrafters.shell;
 
 import java.io.PrintStream;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 final class Shell {
 
     private final Scanner input;
     private final PrintStream output;
-    private final LinkedHashSet<CommandFactory> commandFactories = commandFactories();
+    private final Set<CommandFactory> commandFactories = commandFactories();
 
     Shell(Scanner input, PrintStream output) {
         this.input = input;
@@ -25,15 +21,34 @@ final class Shell {
             if (tokens.isEmpty()) {
                 return 0;
             }
-            var exitCode = commandFactories.stream()
-                .map(commandFactory -> commandFactory.command(tokens.getFirst()))
+            var name = tokens.getFirst();
+            var command = commandFactories.stream()
+                .map(commandFactory -> commandFactory.command(name))
                 .flatMap(Optional::stream)
-                .findAny()
-                .flatMap(command -> command.execute(output, tokens.subList(1, tokens.size())));
-            if (exitCode.isPresent()) {
-                return exitCode.get();
+                .findAny();
+            if (command.isPresent()) {
+                var exitCode = command.get().execute(output, tokens.subList(1, tokens.size()));
+                if (exitCode.isPresent()) {
+                    return exitCode.get();
+                }
+            } else {
+                output.println(name + ": command not found");
             }
         }
+    }
+
+    private Set<CommandFactory> commandFactories() {
+        var set = new HashSet<CommandFactory>();
+        set.add(
+            new BuiltInCommandFactory(
+                Set.of(
+                    new Echo(),
+                    new Exit(),
+                    new Type(set)
+                )
+            )
+        );
+        return set;
     }
 
     private List<String> tokens() {
@@ -41,14 +56,5 @@ final class Shell {
             return List.of();
         }
         return List.of(input.nextLine().split("\\s+"));
-    }
-
-    private LinkedHashSet<CommandFactory> commandFactories() {
-        var all = new LinkedHashSet<CommandFactory>();
-        all.add(new Echo());
-        all.add(new Exit());
-        all.add(new Type(Set.copyOf(all)));
-        all.add(new NotFoundCommandFactory());
-        return all;
     }
 }
