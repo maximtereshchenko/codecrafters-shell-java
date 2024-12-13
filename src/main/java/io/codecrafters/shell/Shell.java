@@ -19,9 +19,12 @@ final class Shell {
     }
 
     int execute() {
-        while (input.hasNextLine()) {
+        while (true) {
             output.print("$ ");
-            var tokens = List.of(input.nextLine().split("\\s+"));
+            var tokens = tokens();
+            if (tokens.isEmpty()) {
+                return 0;
+            }
             var exitCode = commandFactories.stream()
                 .map(commandFactory -> commandFactory.command(tokens.getFirst()))
                 .flatMap(Optional::stream)
@@ -31,7 +34,13 @@ final class Shell {
                 return exitCode.get();
             }
         }
-        return 0;
+    }
+
+    private List<String> tokens() {
+        if (!input.hasNextLine()) {
+            return List.of();
+        }
+        return List.of(input.nextLine().split("\\s+"));
     }
 
     private LinkedHashSet<CommandFactory> commandFactories() {
