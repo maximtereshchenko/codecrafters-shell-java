@@ -5,18 +5,6 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        var scanner = new Scanner(System.in);
-        while (true) {
-            System.out.print("$ ");
-            var input = scanner.nextLine();
-            if (input.equals("exit 0")) {
-                System.exit(0);
-            }
-            if (input.startsWith("echo ")) {
-                System.out.println(input.substring(5));
-            } else {
-                System.out.println(input + ": command not found");
-            }
-        }
+        new Shell(new Scanner(System.in), System.out);
     }
 }
