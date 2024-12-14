@@ -9,11 +9,13 @@ final class Shell {
 
     private final Scanner input;
     private final PrintStream output;
+    private final Path workingDirectory;
     private final Set<CommandFactory> commandFactories;
 
-    Shell(Scanner input, PrintStream output, Set<Path> executableCommandDirectories) {
+    Shell(Scanner input, PrintStream output, Path workingDirectory, Set<Path> executableCommandDirectories) {
         this.input = input;
         this.output = output;
+        this.workingDirectory = workingDirectory;
         this.commandFactories = commandFactories(executableCommandDirectories);
     }
 
@@ -27,7 +29,7 @@ final class Shell {
             var name = tokens.getFirst();
             var command = command(name);
             if (command.isPresent()) {
-                var exitCode = command.get().execute(output, tokens.subList(1, tokens.size()));
+                var exitCode = command.get().execute(output, workingDirectory, tokens.subList(1, tokens.size()));
                 if (exitCode.isPresent()) {
                     return exitCode.get();
                 }
@@ -43,8 +45,9 @@ final class Shell {
             new BuiltInCommandFactory(
                 Set.of(
                     new Echo(),
-                    new Exit(),
-                    new Type(set)
+                    new Pwd(),
+                    new Type(set),
+                    new Exit()
                 )
             )
         );

@@ -5,15 +5,16 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-final class Exit implements BuiltInCommand {
+final class Pwd implements BuiltInCommand {
 
     @Override
     public BuiltIn type() {
-        return new BuiltIn("exit");
+        return new BuiltIn("pwd");
     }
 
     @Override
     public Optional<Integer> execute(PrintStream output, Path workingDirectory, List<String> arguments) {
-        return Optional.of(0);
+        output.println(workingDirectory);
+        return Optional.empty();
     }
 }

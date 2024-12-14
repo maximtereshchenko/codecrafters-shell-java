@@ -2,6 +2,7 @@ package io.codecrafters.shell;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -20,7 +21,7 @@ final class Type implements BuiltInCommand {
     }
 
     @Override
-    public Optional<Integer> execute(PrintStream output, List<String> arguments) throws IOException {
+    public Optional<Integer> execute(PrintStream output, Path workingDirectory, List<String> arguments) throws IOException {
         output.println(description(arguments.getFirst()));
         return Optional.empty();
     }

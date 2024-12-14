@@ -37,7 +37,13 @@ final class Dsl {
         var output = new ByteArrayOutputStream();
         try {
             return new Success(
-                new Shell(new Scanner(input), new PrintStream(output), executableCommandDirectories).evaluate(),
+                new Shell(
+                    new Scanner(input),
+                    new PrintStream(output),
+                    workingDirectory,
+                    executableCommandDirectories
+                )
+                    .evaluate(),
                 List.of(output.toString(StandardCharsets.UTF_8).split(System.lineSeparator()))
             );
         } catch (Exception e) {
@@ -49,6 +55,10 @@ final class Dsl {
         var copy = new HashSet<>(executableCommandDirectories);
         copy.add(directory);
         return new Dsl(input, workingDirectory, copy);
+    }
+
+    Dsl givenWorkingDirectory(Path directory) {
+        return new Dsl(input, directory, executableCommandDirectories);
     }
 
     interface EvaluationResult {

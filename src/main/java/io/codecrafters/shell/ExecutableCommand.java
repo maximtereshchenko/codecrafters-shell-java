@@ -21,7 +21,7 @@ final class ExecutableCommand implements Command {
     }
 
     @Override
-    public Optional<Integer> execute(PrintStream output, List<String> arguments) throws IOException {
+    public Optional<Integer> execute(PrintStream output, Path workingDirectory, List<String> arguments) throws IOException {
         var process = process(output, arguments);
         wait(process);
         return Optional.empty();

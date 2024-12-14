@@ -11,14 +11,16 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        new Shell(new Scanner(System.in), System.out, executableCommandDirectories()).evaluate();
+        new Shell(new Scanner(System.in), System.out, path(""), executableCommandDirectories()).evaluate();
     }
 
     private static Set<Path> executableCommandDirectories() {
         return Stream.of(System.getenv("PATH").split(":"))
-            .map(Paths::get)
-            .map(Path::normalize)
-            .map(Path::toAbsolutePath)
+            .map(Main::path)
             .collect(Collectors.toSet());
+    }
+
+    private static Path path(String raw) {
+        return Paths.get(raw).normalize().toAbsolutePath();
     }
 }

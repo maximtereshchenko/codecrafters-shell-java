@@ -124,4 +124,12 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains("command was executed with argument");
     }
+
+    @Test
+    void givenPwdBuiltIn_thenWorkingDirectoryPrinted(Dsl dsl, @TempDir Path directory) throws IOException {
+        dsl.givenInput("pwd")
+            .givenWorkingDirectory(directory)
+            .whenEvaluated()
+            .thenOutputContains(directory.toString());
+    }
 }
