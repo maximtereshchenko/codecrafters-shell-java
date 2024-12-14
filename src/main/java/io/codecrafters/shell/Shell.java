@@ -17,7 +17,7 @@ final class Shell {
         this.commandFactories = commandFactories(executableCommandDirectories);
     }
 
-    int execute() throws IOException {
+    int evaluate() throws IOException {
         while (true) {
             output.print("$ ");
             var tokens = tokens();
