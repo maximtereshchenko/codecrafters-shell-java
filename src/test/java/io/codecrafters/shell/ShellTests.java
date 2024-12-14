@@ -197,4 +197,11 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains("first   second");
     }
+
+    @Test
+    void givenMultipleSpacesBetweenArguments_thenArgumentsWithoutSpacesPrinted(Dsl dsl) throws IOException {
+        dsl.givenInput("echo first   second")
+            .whenEvaluated()
+            .thenOutputContains("first second");
+    }
 }

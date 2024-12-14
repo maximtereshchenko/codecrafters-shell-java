@@ -81,7 +81,9 @@ final class Shell {
                     if (quoted) {
                         builder.append(current);
                     } else {
-                        tokens.add(builder.toString());
+                        if (!builder.isEmpty()) {
+                            tokens.add(builder.toString());
+                        }
                         builder.setLength(0);
                     }
                 }
