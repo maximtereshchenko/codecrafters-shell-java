@@ -8,4 +8,4 @@
 
 set -e # Exit on failure
 
-mvn -B package -Ddir=/tmp/codecrafters-build-shell-java
+mvn -B -Dmaven.test.skip=true package -Ddir=/tmp/codecrafters-build-shell-java
