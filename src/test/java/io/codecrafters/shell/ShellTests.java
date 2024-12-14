@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -86,6 +88,22 @@ final class ShellTests {
     @Test
     void givenNotExistingExecutableDirectory_thenNoExceptionThrown() {
         assertThatCode(() -> executionResult("invalid_command", Paths.get("not-existing"))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void givenExecutableCommand_thenCommandExecuted(@TempDir Path directory) throws IOException {
+        var executable = Files.createFile(
+            directory.resolve("executable"),
+            PosixFilePermissions.asFileAttribute(
+                Set.of(
+                    PosixFilePermission.OWNER_READ,
+                    PosixFilePermission.OWNER_WRITE,
+                    PosixFilePermission.OWNER_EXECUTE
+                )
+            )
+        );
+        Files.writeString(executable, "echo command was executed with $1");
+        assertThat(executionResult("executable argument", directory).output()).contains("command was executed with argument");
     }
 
     private ExecutionResult executionResult(String input, Path... executableCommandDirectories) throws IOException {
