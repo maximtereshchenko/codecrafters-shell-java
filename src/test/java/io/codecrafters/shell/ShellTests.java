@@ -9,10 +9,12 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 final class ShellTests {
 
@@ -79,6 +81,11 @@ final class ShellTests {
     void givenTypeBuiltin_thenExecutableCommandPrinted(@TempDir Path directory) throws IOException {
         var executable = Files.createFile(directory.resolve("executable"));
         assertThat(executionResult("type executable", directory).output()).contains("executable is " + executable);
+    }
+
+    @Test
+    void givenNotExistingExecutableDirectory_thenNoExceptionThrown() {
+        assertThatCode(() -> executionResult("invalid_command", Paths.get("not-existing"))).doesNotThrowAnyException();
     }
 
     private ExecutionResult executionResult(String input, Path... executableCommandDirectories) throws IOException {

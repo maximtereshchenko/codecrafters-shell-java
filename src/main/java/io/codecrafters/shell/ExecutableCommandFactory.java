@@ -17,15 +17,17 @@ final class ExecutableCommandFactory implements CommandFactory {
     @Override
     public Optional<Command> command(String name) throws IOException {
         for (var directory : directories) {
-            try (var stream = Files.list(directory)) {
-                var executableCommand = stream.filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().equals(name))
-                    .map(Path::normalize)
-                    .map(Path::toAbsolutePath)
-                    .map(ExecutableCommand::new)
-                    .findAny();
-                if (executableCommand.isPresent()) {
-                    return Optional.of(executableCommand.get());
+            if (Files.exists(directory)) {
+                try (var stream = Files.list(directory)) {
+                    var executableCommand = stream.filter(Files::isRegularFile)
+                        .filter(path -> path.getFileName().toString().equals(name))
+                        .map(Path::normalize)
+                        .map(Path::toAbsolutePath)
+                        .map(ExecutableCommand::new)
+                        .findAny();
+                    if (executableCommand.isPresent()) {
+                        return Optional.of(executableCommand.get());
+                    }
                 }
             }
         }
