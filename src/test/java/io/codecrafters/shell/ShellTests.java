@@ -190,4 +190,11 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains(directory.toString());
     }
+
+    @Test
+    void givenSingleQuotes_thenArgumentContainedSpaces(Dsl dsl) throws IOException {
+        dsl.givenInput("echo 'first   second'")
+            .whenEvaluated()
+            .thenOutputContains("first   second");
+    }
 }

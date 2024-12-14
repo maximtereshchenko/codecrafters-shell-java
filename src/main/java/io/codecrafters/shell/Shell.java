@@ -67,7 +67,32 @@ final class Shell {
         if (!input.hasNextLine()) {
             return List.of();
         }
-        return List.of(input.nextLine().split("\\s+"));
+        return tokens(input.nextLine());
+    }
+
+    private List<String> tokens(String line) {
+        var tokens = new ArrayList<String>();
+        var builder = new StringBuilder();
+        var quoted = false;
+        for (var i = 0; i < line.length(); i++) {
+            var current = line.charAt(i);
+            switch (current) {
+                case ' ' -> {
+                    if (quoted) {
+                        builder.append(current);
+                    } else {
+                        tokens.add(builder.toString());
+                        builder.setLength(0);
+                    }
+                }
+                case '\'' -> quoted = !quoted;
+                default -> builder.append(current);
+            }
+        }
+        if (!builder.isEmpty()) {
+            tokens.add(builder.toString());
+        }
+        return tokens;
     }
 
     private Optional<Command> command(String name) throws IOException {
