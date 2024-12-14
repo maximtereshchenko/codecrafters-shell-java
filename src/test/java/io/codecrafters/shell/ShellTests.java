@@ -177,4 +177,17 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains(nested.toString());
     }
+
+    @Test
+    void givenCdBuiltIn_whenTildaProvided_thenWorkingDirectoryChangedToHomeDirectory(Dsl dsl, @TempDir Path directory) throws IOException {
+        dsl.givenInput(
+                """
+                cd ~
+                pwd
+                """
+            )
+            .givenHomeDirectory(directory)
+            .whenEvaluated()
+            .thenOutputContains(directory.toString());
+    }
 }

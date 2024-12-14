@@ -10,12 +10,14 @@ final class Shell {
     private final Scanner input;
     private final PrintStream output;
     private final Path initialWorkingDirectory;
+    private final Path homeDirectory;
     private final Set<CommandFactory> commandFactories;
 
-    Shell(Scanner input, PrintStream output, Path initialWorkingDirectory, Set<Path> executableCommandDirectories) {
+    Shell(Scanner input, PrintStream output, Path homeDirectory, Path initialWorkingDirectory, Set<Path> executableCommandDirectories) {
         this.input = input;
         this.output = output;
         this.initialWorkingDirectory = initialWorkingDirectory;
+        this.homeDirectory = homeDirectory;
         this.commandFactories = commandFactories(executableCommandDirectories);
     }
 
@@ -30,7 +32,8 @@ final class Shell {
             var name = tokens.getFirst();
             var command = command(name);
             if (command.isPresent()) {
-                var executionResult = command.get().execute(output, workingDirectory, tokens.subList(1, tokens.size()));
+                var executionResult = command.get()
+                    .execute(output, homeDirectory, workingDirectory, tokens.subList(1, tokens.size()));
                 if (executionResult instanceof ExitCode(int code)) {
                     return code;
                 }

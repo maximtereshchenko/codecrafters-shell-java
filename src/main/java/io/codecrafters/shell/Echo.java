@@ -12,7 +12,7 @@ final class Echo implements BuiltInCommand {
     }
 
     @Override
-    public ExecutionResult execute(PrintStream output, Path workingDirectory, List<String> arguments) {
+    public ExecutionResult execute(PrintStream output, Path homeDirectory, Path workingDirectory, List<String> arguments) {
         output.println(String.join(" ", arguments));
         return new NoExecutionResult();
     }

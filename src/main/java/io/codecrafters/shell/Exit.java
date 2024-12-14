@@ -12,7 +12,7 @@ final class Exit implements BuiltInCommand {
     }
 
     @Override
-    public ExecutionResult execute(PrintStream output, Path workingDirectory, List<String> arguments) {
+    public ExecutionResult execute(PrintStream output, Path homeDirectory, Path workingDirectory, List<String> arguments) {
         return new ExitCode(0);
     }
 }

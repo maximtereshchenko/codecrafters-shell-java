@@ -20,7 +20,7 @@ final class ExecutableCommand implements Command {
     }
 
     @Override
-    public ExecutionResult execute(PrintStream output, Path workingDirectory, List<String> arguments) throws IOException {
+    public ExecutionResult execute(PrintStream output, Path homeDirectory, Path workingDirectory, List<String> arguments) throws IOException {
         var process = process(output, arguments);
         wait(process);
         return new NoExecutionResult();

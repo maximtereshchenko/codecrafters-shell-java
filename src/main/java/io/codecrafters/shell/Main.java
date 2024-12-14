@@ -11,7 +11,13 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        new Shell(new Scanner(System.in), System.out, path(""), executableCommandDirectories()).evaluate();
+        new Shell(
+            new Scanner(System.in),
+            System.out,
+            path(System.getenv("HOME")), path(""),
+            executableCommandDirectories()
+        )
+            .evaluate();
     }
 
     private static Set<Path> executableCommandDirectories() {

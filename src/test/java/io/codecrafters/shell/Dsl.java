@@ -17,20 +17,22 @@ final class Dsl {
 
     private final String input;
     private final Path workingDirectory;
+    private final Path homeDirectory;
     private final Set<Path> executableCommandDirectories;
 
-    private Dsl(String input, Path workingDirectory, Set<Path> executableCommandDirectories) {
+    private Dsl(String input, Path workingDirectory, Path homeDirectory, Set<Path> executableCommandDirectories) {
         this.input = input;
         this.workingDirectory = workingDirectory;
+        this.homeDirectory = homeDirectory;
         this.executableCommandDirectories = executableCommandDirectories;
     }
 
     Dsl() {
-        this("", Paths.get(""), Set.of());
+        this("", Paths.get(""), Paths.get(""), Set.of());
     }
 
     Dsl givenInput(String input) {
-        return new Dsl(input, workingDirectory, executableCommandDirectories);
+        return new Dsl(input, workingDirectory, homeDirectory, executableCommandDirectories);
     }
 
     EvaluationResult whenEvaluated() throws IOException {
@@ -40,7 +42,7 @@ final class Dsl {
                 new Shell(
                     new Scanner(input),
                     new PrintStream(output),
-                    workingDirectory,
+                    homeDirectory, workingDirectory,
                     executableCommandDirectories
                 )
                     .evaluate(),
@@ -54,11 +56,15 @@ final class Dsl {
     Dsl givenExecutionCommandDirectory(Path directory) {
         var copy = new HashSet<>(executableCommandDirectories);
         copy.add(directory);
-        return new Dsl(input, workingDirectory, copy);
+        return new Dsl(input, workingDirectory, homeDirectory, copy);
     }
 
     Dsl givenWorkingDirectory(Path directory) {
-        return new Dsl(input, directory, executableCommandDirectories);
+        return new Dsl(input, directory, homeDirectory, executableCommandDirectories);
+    }
+
+    Dsl givenHomeDirectory(Path directory) {
+        return new Dsl(input, workingDirectory, directory, executableCommandDirectories);
     }
 
     interface EvaluationResult {

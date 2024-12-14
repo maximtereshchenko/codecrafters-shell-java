@@ -13,8 +13,11 @@ final class Cd implements BuiltInCommand {
     }
 
     @Override
-    public ExecutionResult execute(PrintStream output, Path workingDirectory, List<String> arguments) {
-        var path = workingDirectory.resolve(arguments.getFirst()).normalize();
+    public ExecutionResult execute(PrintStream output, Path homeDirectory, Path workingDirectory, List<String> arguments) {
+        var path = workingDirectory.resolve(
+                arguments.getFirst().replace("~", homeDirectory.toString())
+            )
+            .normalize();
         if (!Files.exists(path)) {
             output.printf("cd: %s: No such file or directory%n", arguments.getFirst());
             return new NoExecutionResult();

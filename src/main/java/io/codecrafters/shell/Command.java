@@ -9,5 +9,5 @@ interface Command {
 
     CommandType type();
 
-    ExecutionResult execute(PrintStream output, Path workingDirectory, List<String> arguments) throws IOException;
+    ExecutionResult execute(PrintStream output, Path homeDirectory, Path workingDirectory, List<String> arguments) throws IOException;
 }
