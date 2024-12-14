@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 final class ExecutableCommand implements Command {
@@ -21,10 +20,10 @@ final class ExecutableCommand implements Command {
     }
 
     @Override
-    public Optional<Integer> execute(PrintStream output, Path workingDirectory, List<String> arguments) throws IOException {
+    public ExecutionResult execute(PrintStream output, Path workingDirectory, List<String> arguments) throws IOException {
         var process = process(output, arguments);
         wait(process);
-        return Optional.empty();
+        return new NoExecutionResult();
     }
 
     private void wait(Process process) {

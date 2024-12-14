@@ -21,9 +21,9 @@ final class Type implements BuiltInCommand {
     }
 
     @Override
-    public Optional<Integer> execute(PrintStream output, Path workingDirectory, List<String> arguments) throws IOException {
+    public ExecutionResult execute(PrintStream output, Path workingDirectory, List<String> arguments) throws IOException {
         output.println(description(arguments.getFirst()));
-        return Optional.empty();
+        return new NoExecutionResult();
     }
 
     private String description(String name) throws IOException {

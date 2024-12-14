@@ -9,17 +9,18 @@ final class Shell {
 
     private final Scanner input;
     private final PrintStream output;
-    private final Path workingDirectory;
+    private final Path initialWorkingDirectory;
     private final Set<CommandFactory> commandFactories;
 
-    Shell(Scanner input, PrintStream output, Path workingDirectory, Set<Path> executableCommandDirectories) {
+    Shell(Scanner input, PrintStream output, Path initialWorkingDirectory, Set<Path> executableCommandDirectories) {
         this.input = input;
         this.output = output;
-        this.workingDirectory = workingDirectory;
+        this.initialWorkingDirectory = initialWorkingDirectory;
         this.commandFactories = commandFactories(executableCommandDirectories);
     }
 
     int evaluate() throws IOException {
+        var workingDirectory = initialWorkingDirectory;
         while (true) {
             output.print("$ ");
             var tokens = tokens();
@@ -29,9 +30,12 @@ final class Shell {
             var name = tokens.getFirst();
             var command = command(name);
             if (command.isPresent()) {
-                var exitCode = command.get().execute(output, workingDirectory, tokens.subList(1, tokens.size()));
-                if (exitCode.isPresent()) {
-                    return exitCode.get();
+                var executionResult = command.get().execute(output, workingDirectory, tokens.subList(1, tokens.size()));
+                if (executionResult instanceof ExitCode(int code)) {
+                    return code;
+                }
+                if (executionResult instanceof WorkingDirectory(Path directory)) {
+                    workingDirectory = directory;
                 }
             } else {
                 output.println(name + ": command not found");

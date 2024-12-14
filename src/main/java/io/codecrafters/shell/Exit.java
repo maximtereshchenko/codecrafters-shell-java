@@ -3,7 +3,6 @@ package io.codecrafters.shell;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 final class Exit implements BuiltInCommand {
 
@@ -13,7 +12,7 @@ final class Exit implements BuiltInCommand {
     }
 
     @Override
-    public Optional<Integer> execute(PrintStream output, Path workingDirectory, List<String> arguments) {
-        return Optional.of(0);
+    public ExecutionResult execute(PrintStream output, Path workingDirectory, List<String> arguments) {
+        return new ExitCode(0);
     }
 }

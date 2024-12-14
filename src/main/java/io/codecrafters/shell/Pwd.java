@@ -3,7 +3,6 @@ package io.codecrafters.shell;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 final class Pwd implements BuiltInCommand {
 
@@ -13,8 +12,8 @@ final class Pwd implements BuiltInCommand {
     }
 
     @Override
-    public Optional<Integer> execute(PrintStream output, Path workingDirectory, List<String> arguments) {
+    public ExecutionResult execute(PrintStream output, Path workingDirectory, List<String> arguments) {
         output.println(workingDirectory);
-        return Optional.empty();
+        return new NoExecutionResult();
     }
 }
