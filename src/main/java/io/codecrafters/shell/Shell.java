@@ -40,7 +40,7 @@ final class Shell {
     }
 
     private Set<CommandFactory> commandFactories(Set<Path> executableCommandDirectories) {
-        var set = new HashSet<CommandFactory>();
+        var set = new LinkedHashSet<CommandFactory>();
         set.add(
             new BuiltInCommandFactory(
                 Set.of(

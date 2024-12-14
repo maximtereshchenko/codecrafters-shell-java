@@ -3,15 +3,15 @@ package io.codecrafters.shell;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 final class Type implements BuiltInCommand {
 
-    private final Set<CommandFactory> other;
+    private final LinkedHashSet<CommandFactory> other;
 
-    Type(Set<CommandFactory> other) {
+    Type(LinkedHashSet<CommandFactory> other) {
         this.other = other;
     }
 

@@ -132,4 +132,14 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains(directory.toString());
     }
+
+    @Test
+    void givenExecutableCommandWithBuiltInName_thenBuiltInPrioritized(Dsl dsl, @TempDir Path directory) throws IOException {
+        var pwd = Files.createFile(directory.resolve("pwd"));
+        dsl.givenInput("type pwd")
+            .givenExecutionCommandDirectory(directory)
+            .whenEvaluated()
+            .thenOutputContains("pwd is a shell builtin")
+            .thenOutputDoesNotContain("pwd is " + pwd);
+    }
 }
