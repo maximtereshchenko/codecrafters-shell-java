@@ -29,7 +29,7 @@ final class ShellTests {
     }
 
     @Test
-    void givenMultipleCommand_thenEachCommandEvaluated(Dsl dsl) throws IOException {
+    void givenMultipleCommands_thenEachCommandEvaluated(Dsl dsl) throws IOException {
         dsl.givenInput(
                 """
                 invalid_command_1
@@ -144,7 +144,7 @@ final class ShellTests {
     }
 
     @Test
-    void givenCdBuiltInWithAbsolutePath_thenWorkingDirectoryChanged(Dsl dsl, @TempDir Path directory) throws IOException {
+    void givenCdBuiltIn_whenAbsolutePathProvided_thenWorkingDirectoryChanged(Dsl dsl, @TempDir Path directory) throws IOException {
         var nested = Files.createDirectory(directory.resolve("nested"));
         dsl.givenInput(
                 """
@@ -156,5 +156,12 @@ final class ShellTests {
             .givenExecutionCommandDirectory(directory)
             .whenEvaluated()
             .thenOutputContains(nested.toString());
+    }
+
+    @Test
+    void givenCdBuiltIn_whenNonExistingPathProvided_thenNoSuchDirectoryPrinted(Dsl dsl) throws IOException {
+        dsl.givenInput("cd /non-existing")
+            .whenEvaluated()
+            .thenOutputContains("cd: /non-existing: No such file or directory");
     }
 }
