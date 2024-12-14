@@ -153,7 +153,6 @@ final class ShellTests {
                 """
                     .formatted(nested.toString())
             )
-            .givenExecutionCommandDirectory(directory)
             .whenEvaluated()
             .thenOutputContains(nested.toString());
     }
@@ -163,5 +162,19 @@ final class ShellTests {
         dsl.givenInput("cd /non-existing")
             .whenEvaluated()
             .thenOutputContains("cd: /non-existing: No such file or directory");
+    }
+
+    @Test
+    void givenCdBuiltIn_whenRelativePathProvided_thenWorkingDirectoryChanged(Dsl dsl, @TempDir Path directory) throws IOException {
+        var nested = Files.createDirectory(directory.resolve("nested"));
+        dsl.givenInput(
+                """
+                cd ./nested/../nested
+                pwd
+                """
+            )
+            .givenWorkingDirectory(directory)
+            .whenEvaluated()
+            .thenOutputContains(nested.toString());
     }
 }
