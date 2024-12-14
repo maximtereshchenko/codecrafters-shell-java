@@ -142,4 +142,19 @@ final class ShellTests {
             .thenOutputContains("pwd is a shell builtin")
             .thenOutputDoesNotContain("pwd is " + pwd);
     }
+
+    @Test
+    void givenCdBuiltInWithAbsolutePath_thenWorkingDirectoryChanged(Dsl dsl, @TempDir Path directory) throws IOException {
+        var nested = Files.createDirectory(directory.resolve("nested"));
+        dsl.givenInput(
+                """
+                cd %s
+                pwd
+                """
+                    .formatted(nested.toString())
+            )
+            .givenExecutionCommandDirectory(directory)
+            .whenEvaluated()
+            .thenOutputContains(nested.toString());
+    }
 }

@@ -50,6 +50,7 @@ final class Shell {
                 Set.of(
                     new Echo(),
                     new Pwd(),
+                    new Cd(),
                     new Type(set),
                     new Exit()
                 )
