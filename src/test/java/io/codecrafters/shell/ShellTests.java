@@ -258,4 +258,15 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains("\\");
     }
+
+    @Test
+    void givenDoubleQuotedWords_thenSingleArgumentPrinted(Dsl dsl) {
+        dsl.givenInput(
+                """
+                echo "first""second"
+                """
+            )
+            .whenEvaluated()
+            .thenOutputContains("firstsecond");
+    }
 }
