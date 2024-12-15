@@ -269,4 +269,15 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains("firstsecond");
     }
+
+    @Test
+    void givenSingleQuotedWords_thenSingleArgumentPrinted(Dsl dsl) {
+        dsl.givenInput(
+                """
+                echo 'first''second'
+                """
+            )
+            .whenEvaluated()
+            .thenOutputContains("firstsecond");
+    }
 }

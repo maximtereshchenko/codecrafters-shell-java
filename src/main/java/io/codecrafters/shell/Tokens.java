@@ -298,7 +298,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onSingleQuote() {
-            return new Transition(new ReadingWhiteSpaces(), new Literal(builder));
+            return new Transition(new ReadingToken(builder));
         }
 
         @Override
