@@ -301,11 +301,7 @@ final class ShellTests {
             )
         );
         Files.writeString(executable, "echo command was executed with $1");
-        dsl.givenInput(
-                """
-                'program with spaces' argument
-                """
-            )
+        dsl.givenInput("'program with spaces' argument")
             .givenExecutionCommandDirectory(directory)
             .whenEvaluated()
             .thenOutputContains("command was executed with argument");
