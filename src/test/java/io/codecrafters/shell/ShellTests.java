@@ -204,4 +204,15 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains("first second");
     }
+
+    @Test
+    void givenDoubleQuotes_thenArgumentContainedSpaces(Dsl dsl) {
+        dsl.givenInput(
+                """
+                echo "first   second"
+                """
+            )
+            .whenEvaluated()
+            .thenOutputContains("first   second");
+    }
 }
