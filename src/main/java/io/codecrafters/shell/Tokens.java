@@ -257,9 +257,6 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onCharacter(char character) {
-            if (character == 'n') {
-                return transition('\n');
-            }
             return transitionWithEscape(character);
         }
 

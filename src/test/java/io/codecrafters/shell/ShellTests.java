@@ -272,12 +272,19 @@ final class ShellTests {
 
     @Test
     void givenSingleQuotedWords_thenSingleArgumentPrinted(Dsl dsl) {
+        dsl.givenInput("echo 'first''second'")
+            .whenEvaluated()
+            .thenOutputContains("firstsecond");
+    }
+
+    @Test
+    void givenEscapedN_thenLiteralValuePrinted(Dsl dsl) {
         dsl.givenInput(
                 """
-                echo 'first''second'
+                echo "\\n"
                 """
             )
             .whenEvaluated()
-            .thenOutputContains("firstsecond");
+            .thenOutputContains("\\n");
     }
 }
