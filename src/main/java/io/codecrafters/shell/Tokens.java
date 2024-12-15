@@ -1,11 +1,11 @@
 package io.codecrafters.shell;
 
-import java.util.Iterator;
-import java.util.Optional;
+import java.util.*;
 
 final class Tokens extends CachingIterator<Token> {
 
     private final Iterator<Character> characterIterator;
+    private final Queue<Token> queue = new LinkedList<>();
     private State state = new Initial();
 
     Tokens(Iterator<Character> characterIterator) {
@@ -14,17 +14,24 @@ final class Tokens extends CachingIterator<Token> {
 
     @Override
     Optional<Token> nextElement() {
+        if (queue.isEmpty()) {
+            queueNextTokens();
+        }
+        return Optional.ofNullable(queue.poll());
+    }
+
+    private void queueNextTokens() {
         while (characterIterator.hasNext()) {
             var next = characterIterator.next();
             var transition = transition(next);
             state = transition.next();
-            if (transition.result() instanceof Found(Token token)) {
-                return Optional.of(token);
+            if (transition.result() instanceof Found(List<Token> tokens)) {
+                queue.addAll(tokens);
+                return;
             }
         }
-        var token = state.onEnd();
+        state.onEnd().ifPresent(queue::add);
         state = new Final();
-        return token;
     }
 
     private Transition transition(char next) {
@@ -38,7 +45,10 @@ final class Tokens extends CachingIterator<Token> {
         };
     }
 
-    private sealed interface Result {}
+    private sealed interface Result {
+
+        Result combined(Result result);
+    }
 
     private interface State {
 
@@ -57,7 +67,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onWhitespace(char whitespace) {
-            return new Transition(new ReadingWhiteSpaces(whitespace));
+            return new ReadingWhiteSpaces().onWhitespace(whitespace);
         }
 
         @Override
@@ -72,7 +82,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onCharacter(char character) {
-            return new Transition(new ReadingToken(character));
+            return new ReadingToken().onCharacter(character);
         }
 
         @Override
@@ -113,13 +123,13 @@ final class Tokens extends CachingIterator<Token> {
 
         private final StringBuilder builder = new StringBuilder();
 
-        ReadingToken(char initial) {
-            builder.append(initial);
-        }
-
         @Override
         public Transition onWhitespace(char whitespace) {
-            return new Transition(new ReadingWhiteSpaces(whitespace), new Literal(builder));
+            var transition = new ReadingWhiteSpaces().onWhitespace(whitespace);
+            return new Transition(
+                transition.next(),
+                new Found(new Literal(builder)).combined(transition.result())
+            );
         }
 
         @Override
@@ -230,12 +240,6 @@ final class Tokens extends CachingIterator<Token> {
 
         private final StringBuilder builder = new StringBuilder();
 
-        ReadingWhiteSpaces() {}
-
-        ReadingWhiteSpaces(char initial) {
-            builder.append(initial);
-        }
-
         @Override
         public Transition onWhitespace(char whitespace) {
             builder.append(whitespace);
@@ -254,7 +258,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onCharacter(char character) {
-            return transition(new ReadingToken(character));
+            return combined(new ReadingToken().onCharacter(character));
         }
 
         @Override
@@ -263,11 +267,16 @@ final class Tokens extends CachingIterator<Token> {
         }
 
         private Transition transition(State next) {
+            return combined(new Transition(next));
+        }
+
+        private Transition combined(Transition transition) {
             return new Transition(
-                next,
+                transition.next(),
                 token()
                     .<Result>map(Found::new)
                     .orElseGet(Continue::new)
+                    .combined(transition.result())
             );
         }
 
@@ -275,6 +284,7 @@ final class Tokens extends CachingIterator<Token> {
             if (builder.indexOf(System.lineSeparator()) == -1) {
                 return Optional.empty();
             }
+            builder.setLength(0);
             return Optional.of(new LineBreak());
         }
     }
@@ -290,7 +300,33 @@ final class Tokens extends CachingIterator<Token> {
         }
     }
 
-    private static final class Continue implements Result {}
+    private static final class Continue implements Result {
 
-    private record Found(Token token) implements Result {}
+        @Override
+        public Result combined(Result result) {
+            return switch (result) {
+                case Continue ignored -> this;
+                case Found found -> found;
+            };
+        }
+    }
+
+    private record Found(List<Token> tokens) implements Result {
+
+        Found(Token token) {
+            this(List.of(token));
+        }
+
+        @Override
+        public Result combined(Result result) {
+            return switch (result) {
+                case Continue ignored -> this;
+                case Found(List<Token> foundTokens) -> {
+                    var copy = new ArrayList<>(tokens);
+                    copy.addAll(foundTokens);
+                    yield new Found(copy);
+                }
+            };
+        }
+    }
 }
