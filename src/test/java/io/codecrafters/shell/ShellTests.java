@@ -247,4 +247,15 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains("first\\second");
     }
+
+    @Test
+    void givenEscapeCharacterWithinDoubleQuotes_thenNextCharacterLiteralValuePreserved(Dsl dsl) {
+        dsl.givenInput(
+                """
+                echo "\\\\"
+                """
+            )
+            .whenEvaluated()
+            .thenOutputContains("\\");
+    }
 }

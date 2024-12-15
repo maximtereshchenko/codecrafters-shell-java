@@ -1,6 +1,7 @@
 package io.codecrafters.shell;
 
 import java.util.*;
+import java.util.function.Function;
 
 final class Tokens extends CachingIterator<Token> {
 
@@ -85,7 +86,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onBackslash() {
-            return new Transition(new ReadingEscapedCharacter());
+            return new Transition(new ReadingLiteralCharacterValue(ReadingToken::new));
         }
 
         @Override
@@ -165,7 +166,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onBackslash() {
-            return new Transition(new ReadingEscapedCharacter(builder));
+            return new Transition(new ReadingLiteralCharacterValue(builder, ReadingToken::new));
         }
 
         @Override
@@ -180,16 +181,18 @@ final class Tokens extends CachingIterator<Token> {
         }
     }
 
-    private static final class ReadingEscapedCharacter implements State {
+    private static final class ReadingLiteralCharacterValue implements State {
 
         private final StringBuilder builder;
+        private final Function<StringBuilder, State> next;
 
-        ReadingEscapedCharacter(StringBuilder builder) {
+        ReadingLiteralCharacterValue(StringBuilder builder, Function<StringBuilder, State> next) {
             this.builder = builder;
+            this.next = next;
         }
 
-        ReadingEscapedCharacter() {
-            this(new StringBuilder());
+        ReadingLiteralCharacterValue(Function<StringBuilder, State> next) {
+            this(new StringBuilder(), next);
         }
 
         @Override
@@ -215,12 +218,64 @@ final class Tokens extends CachingIterator<Token> {
         @Override
         public Transition onCharacter(char character) {
             builder.append(character);
-            return new Transition(new ReadingToken(builder));
+            return new Transition(next.apply(builder));
         }
 
         @Override
         public Optional<Token> onEnd() {
             throw new IllegalStateException();
+        }
+    }
+
+    private static final class ReadingSpecialCharacterValue implements State {
+
+        private final StringBuilder builder;
+
+        ReadingSpecialCharacterValue(StringBuilder builder) {
+            this.builder = builder;
+        }
+
+        @Override
+        public Transition onWhitespace(char whitespace) {
+            return transitionWithEscape(whitespace);
+        }
+
+        @Override
+        public Transition onSingleQuote() {
+            return transitionWithEscape('\'');
+        }
+
+        @Override
+        public Transition onDoubleQuote() {
+            return transition('"');
+        }
+
+        @Override
+        public Transition onBackslash() {
+            return transition('\\');
+        }
+
+        @Override
+        public Transition onCharacter(char character) {
+            if (character == 'n') {
+                return transition('\n');
+            }
+            return transitionWithEscape(character);
+        }
+
+        @Override
+        public Optional<Token> onEnd() {
+            throw new IllegalStateException();
+        }
+
+        private Transition transitionWithEscape(char character) {
+            builder.append('\\');
+            return transition(character);
+        }
+
+        private Transition transition(char character) {
+            builder.append(character);
+            return new Transition(new ReadingDoubleQuotedToken(builder));
         }
     }
 
@@ -297,7 +352,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onBackslash() {
-            return onCharacter('\\');
+            return new Transition(new ReadingSpecialCharacterValue(builder));
         }
 
         @Override
@@ -334,7 +389,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onBackslash() {
-            return transition(new ReadingEscapedCharacter(builder));
+            return transition(new ReadingLiteralCharacterValue(builder, ReadingToken::new));
         }
 
         @Override
