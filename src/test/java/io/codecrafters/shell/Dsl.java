@@ -1,5 +1,7 @@
 package io.codecrafters.shell;
 
+import org.assertj.core.api.SoftAssertions;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
@@ -68,7 +70,7 @@ final class Dsl {
 
     interface EvaluationResult {
 
-        EvaluationResult thenOutputContains(String expected);
+        EvaluationResult thenOutputContains(String... expected);
 
         EvaluationResult thenExitCodeIsZero();
 
@@ -88,8 +90,14 @@ final class Dsl {
         }
 
         @Override
-        public EvaluationResult thenOutputContains(String expected) {
-            assertThat(lines).anyMatch(line -> line.contains(expected));
+        public EvaluationResult thenOutputContains(String... expected) {
+            var soft = new SoftAssertions();
+            for (var element : expected) {
+                soft.assertThat(lines)
+                    .describedAs("At least one line should contain '%s'", element)
+                    .anyMatch(line -> line.contains(element));
+            }
+            soft.assertAll();
             return this;
         }
 
@@ -119,7 +127,7 @@ final class Dsl {
         }
 
         @Override
-        public EvaluationResult thenOutputContains(String expected) {
+        public EvaluationResult thenOutputContains(String... expected) {
             thenNoExceptionThrown();
             return this;
         }

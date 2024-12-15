@@ -13,7 +13,12 @@ final class Cd implements BuiltInCommand {
     }
 
     @Override
-    public ExecutionResult execute(PrintStream output, Path homeDirectory, Path workingDirectory, List<String> arguments) {
+    public ExecutionResult execute(
+        PrintStream output,
+        Path homeDirectory,
+        Path workingDirectory,
+        List<String> arguments
+    ) {
         var path = workingDirectory.resolve(
                 arguments.getFirst().replace("~", homeDirectory.toString())
             )

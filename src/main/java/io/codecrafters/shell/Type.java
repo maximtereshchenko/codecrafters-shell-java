@@ -21,7 +21,12 @@ final class Type implements BuiltInCommand {
     }
 
     @Override
-    public ExecutionResult execute(PrintStream output, Path homeDirectory, Path workingDirectory, List<String> arguments) throws IOException {
+    public ExecutionResult execute(
+        PrintStream output,
+        Path homeDirectory,
+        Path workingDirectory,
+        List<String> arguments
+    ) throws IOException {
         output.println(description(arguments.getFirst()));
         return new NoExecutionResult();
     }

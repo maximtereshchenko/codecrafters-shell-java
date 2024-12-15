@@ -37,8 +37,10 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenOutputContains("invalid_command_1: command not found")
-            .thenOutputContains("invalid_command_2: command not found");
+            .thenOutputContains(
+                "invalid_command_1: command not found",
+                "invalid_command_2: command not found"
+            );
     }
 
     @Test
@@ -214,5 +216,17 @@ final class ShellTests {
             )
             .whenEvaluated()
             .thenOutputContains("first   second");
+    }
+
+    @Test
+    void givenDoubleQuotes_thenSecondInputNotSkipped(Dsl dsl) {
+        dsl.givenInput(
+                """
+                echo "quoted"
+                echo normal
+                """
+            )
+            .whenEvaluated()
+            .thenOutputContains("quoted", "normal");
     }
 }

@@ -14,6 +14,9 @@ final class Inputs extends CachingIterator<Input> {
 
     @Override
     Optional<Input> nextElement() {
+        if (!tokenIterator.hasNext()) {
+            return Optional.empty();
+        }
         var buffer = new ArrayList<String>();
         while (tokenIterator.hasNext()) {
             var token = tokenIterator.next();
@@ -25,7 +28,7 @@ final class Inputs extends CachingIterator<Input> {
             }
         }
         if (buffer.isEmpty()) {
-            return Optional.empty();
+            return nextElement();
         }
         return Optional.of(new Input(buffer.getFirst(), buffer.subList(1, buffer.size())));
     }
