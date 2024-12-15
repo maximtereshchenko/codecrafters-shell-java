@@ -287,4 +287,27 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains("\\n");
     }
+
+    @Test
+    void givenExecutableCommandWithSpaces_thenCommandExecuted(Dsl dsl, @TempDir Path directory) throws IOException {
+        var executable = Files.createFile(
+            directory.resolve("program with spaces"),
+            PosixFilePermissions.asFileAttribute(
+                Set.of(
+                    PosixFilePermission.OWNER_READ,
+                    PosixFilePermission.OWNER_WRITE,
+                    PosixFilePermission.OWNER_EXECUTE
+                )
+            )
+        );
+        Files.writeString(executable, "echo command was executed with $1");
+        dsl.givenInput(
+                """
+                'program with spaces' argument
+                """
+            )
+            .givenExecutionCommandDirectory(directory)
+            .whenEvaluated()
+            .thenOutputContains("command was executed with argument");
+    }
 }
