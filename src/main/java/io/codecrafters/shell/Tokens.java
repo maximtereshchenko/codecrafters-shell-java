@@ -41,6 +41,7 @@ final class Tokens extends CachingIterator<Token> {
         return switch (next) {
             case '\'' -> state.onSingleQuote();
             case '"' -> state.onDoubleQuote();
+            case '\\' -> state.onBackslash();
             default -> state.onCharacter(next);
         };
     }
@@ -57,6 +58,8 @@ final class Tokens extends CachingIterator<Token> {
         Transition onSingleQuote();
 
         Transition onDoubleQuote();
+
+        Transition onBackslash();
 
         Transition onCharacter(char character);
 
@@ -78,6 +81,11 @@ final class Tokens extends CachingIterator<Token> {
         @Override
         public Transition onDoubleQuote() {
             return new Transition(new ReadingDoubleQuotedToken());
+        }
+
+        @Override
+        public Transition onBackslash() {
+            return new Transition(new ReadingEscapedCharacter());
         }
 
         @Override
@@ -109,6 +117,11 @@ final class Tokens extends CachingIterator<Token> {
         }
 
         @Override
+        public Transition onBackslash() {
+            return onSingleQuote();
+        }
+
+        @Override
         public Transition onCharacter(char character) {
             return onSingleQuote();
         }
@@ -121,7 +134,15 @@ final class Tokens extends CachingIterator<Token> {
 
     private static final class ReadingToken implements State {
 
-        private final StringBuilder builder = new StringBuilder();
+        private final StringBuilder builder;
+
+        ReadingToken(StringBuilder builder) {
+            this.builder = builder;
+        }
+
+        ReadingToken() {
+            this(new StringBuilder());
+        }
 
         @Override
         public Transition onWhitespace(char whitespace) {
@@ -143,6 +164,11 @@ final class Tokens extends CachingIterator<Token> {
         }
 
         @Override
+        public Transition onBackslash() {
+            return new Transition(new ReadingEscapedCharacter(builder));
+        }
+
+        @Override
         public Transition onCharacter(char character) {
             builder.append(character);
             return new Transition(this);
@@ -151,6 +177,50 @@ final class Tokens extends CachingIterator<Token> {
         @Override
         public Optional<Token> onEnd() {
             return Optional.of(new Literal(builder));
+        }
+    }
+
+    private static final class ReadingEscapedCharacter implements State {
+
+        private final StringBuilder builder;
+
+        ReadingEscapedCharacter(StringBuilder builder) {
+            this.builder = builder;
+        }
+
+        ReadingEscapedCharacter() {
+            this(new StringBuilder());
+        }
+
+        @Override
+        public Transition onWhitespace(char whitespace) {
+            return onCharacter(whitespace);
+        }
+
+        @Override
+        public Transition onSingleQuote() {
+            return onCharacter('\'');
+        }
+
+        @Override
+        public Transition onDoubleQuote() {
+            return onCharacter('"');
+        }
+
+        @Override
+        public Transition onBackslash() {
+            return onCharacter('\\');
+        }
+
+        @Override
+        public Transition onCharacter(char character) {
+            builder.append(character);
+            return new Transition(new ReadingToken(builder));
+        }
+
+        @Override
+        public Optional<Token> onEnd() {
+            throw new IllegalStateException();
         }
     }
 
@@ -168,8 +238,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onWhitespace(char whitespace) {
-            builder.append(whitespace);
-            return new Transition(this);
+            return onCharacter(whitespace);
         }
 
         @Override
@@ -179,8 +248,12 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onDoubleQuote() {
-            builder.append('"');
-            return new Transition(this);
+            return onCharacter('"');
+        }
+
+        @Override
+        public Transition onBackslash() {
+            return onCharacter('\\');
         }
 
         @Override
@@ -209,19 +282,22 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onWhitespace(char whitespace) {
-            builder.append(whitespace);
-            return new Transition(this);
+            return onCharacter(whitespace);
         }
 
         @Override
         public Transition onSingleQuote() {
-            builder.append('\'');
-            return new Transition(this);
+            return onCharacter('\'');
         }
 
         @Override
         public Transition onDoubleQuote() {
             return new Transition(new ReadingWhiteSpaces(), new Literal(builder));
+        }
+
+        @Override
+        public Transition onBackslash() {
+            return onCharacter('\\');
         }
 
         @Override
@@ -254,6 +330,11 @@ final class Tokens extends CachingIterator<Token> {
         @Override
         public Transition onDoubleQuote() {
             return transition(new ReadingDoubleQuotedToken());
+        }
+
+        @Override
+        public Transition onBackslash() {
+            return transition(new ReadingEscapedCharacter(builder));
         }
 
         @Override

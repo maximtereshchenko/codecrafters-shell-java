@@ -229,4 +229,11 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContains("quoted", "normal");
     }
+
+    @Test
+    void givenEscapeCharacter_thenNextCharacterLiteralValuePreserved(Dsl dsl) {
+        dsl.givenInput("echo first\\ \\ \\ second")
+            .whenEvaluated()
+            .thenOutputContains("first   second");
+    }
 }
