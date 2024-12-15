@@ -3,63 +3,44 @@ package io.codecrafters.shell;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 
-final class Tokens implements Iterator<Token> {
+final class Tokens extends CachingIterator<Token> {
 
     private final StringBuilder spaceBuffer = new StringBuilder();
     private final Reader reader;
-    private Token next;
 
     Tokens(Reader reader) {
         this.reader = reader;
     }
 
     @Override
-    public boolean hasNext() {
-        if (next == null) {
-            if (spaceBuffer.indexOf(System.lineSeparator()) != -1) {
-                next = new LineBreak();
-                spaceBuffer.setLength(0);
-                return true;
-            }
-            try {
-                for (var nextChar = reader.read(); nextChar != -1; nextChar = reader.read()) {
-                    if (Character.isWhitespace(nextChar)) {
-                        spaceBuffer.append(nextChar);
-                        if (spaceBuffer.indexOf(System.lineSeparator()) != -1) {
-                            next = new LineBreak();
-                            spaceBuffer.setLength(0);
-                            return true;
-                        }
-                    } else if (nextChar == '\'') {
-                        readUntilSingleQuote();
-                        return true;
-                    } else {
-                        readNormal((char) nextChar);
-                        return true;
+    Optional<Token> nextElement() {
+        if (spaceBuffer.indexOf(System.lineSeparator()) != -1) {
+            spaceBuffer.setLength(0);
+            return Optional.of(new LineBreak());
+        }
+        try {
+            for (var nextChar = reader.read(); nextChar != -1; nextChar = reader.read()) {
+                if (Character.isWhitespace(nextChar)) {
+                    spaceBuffer.append(nextChar);
+                    if (spaceBuffer.indexOf(System.lineSeparator()) != -1) {
+                        spaceBuffer.setLength(0);
+                        return Optional.of(new LineBreak());
                     }
+                } else if (nextChar == '\'') {
+                    return Optional.of(readUntilSingleQuote());
+                } else {
+                    return Optional.of(readNormal((char) nextChar));
                 }
-                return false;
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
             }
+            return Optional.empty();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
-        return true;
     }
 
-    @Override
-    public Token next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
-        }
-        var result = next;
-        next = null;
-        return result;
-    }
-
-    private void readNormal(char first) throws IOException {
+    private Literal readNormal(char first) throws IOException {
         var builder = new StringBuilder().append(first);
         for (var nextChar = reader.read(); nextChar != -1; nextChar = reader.read()) {
             if (Character.isWhitespace(nextChar)) {
@@ -68,10 +49,10 @@ final class Tokens implements Iterator<Token> {
             }
             builder.append((char) nextChar);
         }
-        next = new Literal(builder.toString());
+        return new Literal(builder.toString());
     }
 
-    private void readUntilSingleQuote() throws IOException {
+    private Literal readUntilSingleQuote() throws IOException {
         var builder = new StringBuilder();
         for (var nextChar = reader.read(); nextChar != -1; nextChar = reader.read()) {
             if (nextChar == '\'') {
@@ -79,6 +60,6 @@ final class Tokens implements Iterator<Token> {
             }
             builder.append((char) nextChar);
         }
-        next = new Literal(builder.toString());
+        return new Literal(builder.toString());
     }
 }
