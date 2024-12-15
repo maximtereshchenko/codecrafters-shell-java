@@ -20,8 +20,8 @@ final class Inputs extends CachingIterator<Input> {
             if (token instanceof LineBreak) {
                 break;
             }
-            if (token instanceof Literal(String value)) {
-                buffer.add(value);
+            if (token instanceof Literal(CharSequence value)) {
+                buffer.add(value.toString());
             }
         }
         if (buffer.isEmpty()) {
