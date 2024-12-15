@@ -1,3 +1,3 @@
 package io.codecrafters.shell;
 
-final class LineBreak implements Token{}
+final class LineBreak implements Token {}

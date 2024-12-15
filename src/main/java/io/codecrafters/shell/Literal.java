@@ -1,3 +1,3 @@
 package io.codecrafters.shell;
 
-record Literal(String value) implements Token{}
+record Literal(String value) implements Token {}

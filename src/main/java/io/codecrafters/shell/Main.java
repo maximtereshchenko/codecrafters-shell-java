@@ -12,7 +12,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         new Shell(
-            new Inputs(new Tokens(new InputStreamReader(System.in))),
+            new Inputs(new Tokens(new Characters(new InputStreamReader(System.in)))),
             System.out,
             path(System.getenv("HOME")), path(""),
             executableCommandDirectories()

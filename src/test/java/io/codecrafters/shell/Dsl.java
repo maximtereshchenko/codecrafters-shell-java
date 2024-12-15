@@ -39,7 +39,7 @@ final class Dsl {
         try {
             return new Success(
                 new Shell(
-                    new Inputs(new Tokens(new StringReader(input))),
+                    new Inputs(new Tokens(new Characters(new StringReader(input)))),
                     new PrintStream(output),
                     homeDirectory, workingDirectory,
                     executableCommandDirectories
