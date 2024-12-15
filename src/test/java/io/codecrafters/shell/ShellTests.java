@@ -16,20 +16,20 @@ import java.util.Set;
 final class ShellTests {
 
     @Test
-    void givenNoInput_thenPromptPrinted(Dsl dsl) throws IOException {
+    void givenNoInput_thenPromptPrinted(Dsl dsl) {
         dsl.whenEvaluated()
             .thenOutputContains("$ ");
     }
 
     @Test
-    void givenInvalidCommand_thenInvalidCommandMessagePrinted(Dsl dsl) throws IOException {
+    void givenInvalidCommand_thenInvalidCommandMessagePrinted(Dsl dsl) {
         dsl.givenInput("invalid_command")
             .whenEvaluated()
             .thenOutputContains("invalid_command: command not found");
     }
 
     @Test
-    void givenMultipleCommands_thenEachCommandEvaluated(Dsl dsl) throws IOException {
+    void givenMultipleCommands_thenEachCommandEvaluated(Dsl dsl) {
         dsl.givenInput(
                 """
                 invalid_command_1
@@ -42,7 +42,7 @@ final class ShellTests {
     }
 
     @Test
-    void givenExitBuiltIn_thenShellExited(Dsl dsl) throws IOException {
+    void givenExitBuiltIn_thenShellExited(Dsl dsl) {
         dsl.givenInput(
                 """
                 exit 0
@@ -55,35 +55,35 @@ final class ShellTests {
     }
 
     @Test
-    void givenEchoBuiltIn_thenArgumentsPrinted(Dsl dsl) throws IOException {
+    void givenEchoBuiltIn_thenArgumentsPrinted(Dsl dsl) {
         dsl.givenInput("echo first second")
             .whenEvaluated()
             .thenOutputContains("first second");
     }
 
     @Test
-    void givenEchoBuiltIn_thenEchoNotPrinted(Dsl dsl) throws IOException {
+    void givenEchoBuiltIn_thenEchoNotPrinted(Dsl dsl) {
         dsl.givenInput("echo first second")
             .whenEvaluated()
             .thenOutputDoesNotContain("echo");
     }
 
     @Test
-    void givenTypeBuiltIn_thenExistingBuiltInTypePrinted(Dsl dsl) throws IOException {
+    void givenTypeBuiltIn_thenExistingBuiltInTypePrinted(Dsl dsl) {
         dsl.givenInput("type exit")
             .whenEvaluated()
             .thenOutputContains("exit is a shell builtin");
     }
 
     @Test
-    void givenTypeBuiltIn_thenItsTypePrinted(Dsl dsl) throws IOException {
+    void givenTypeBuiltIn_thenItsTypePrinted(Dsl dsl) {
         dsl.givenInput("type type")
             .whenEvaluated()
             .thenOutputContains("type is a shell builtin");
     }
 
     @Test
-    void givenTypeBuiltIn_thenNotFoundCommandPrinted(Dsl dsl) throws IOException {
+    void givenTypeBuiltIn_thenNotFoundCommandPrinted(Dsl dsl) {
         dsl.givenInput("type invalid_command")
             .whenEvaluated()
             .thenOutputContains("invalid_command: not found");
@@ -99,7 +99,7 @@ final class ShellTests {
     }
 
     @Test
-    void givenNotExistingExecutableDirectory_thenNoExceptionThrown(Dsl dsl) throws IOException {
+    void givenNotExistingExecutableDirectory_thenNoExceptionThrown(Dsl dsl) {
         dsl.givenInput("invalid_command")
             .givenExecutionCommandDirectory(Paths.get("not-existing"))
             .whenEvaluated()
@@ -126,7 +126,7 @@ final class ShellTests {
     }
 
     @Test
-    void givenPwdBuiltIn_thenWorkingDirectoryPrinted(Dsl dsl, @TempDir Path directory) throws IOException {
+    void givenPwdBuiltIn_thenWorkingDirectoryPrinted(Dsl dsl, @TempDir Path directory) {
         dsl.givenInput("pwd")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
@@ -158,7 +158,7 @@ final class ShellTests {
     }
 
     @Test
-    void givenCdBuiltIn_whenNonExistingPathProvided_thenNoSuchDirectoryPrinted(Dsl dsl) throws IOException {
+    void givenCdBuiltIn_whenNonExistingPathProvided_thenNoSuchDirectoryPrinted(Dsl dsl) {
         dsl.givenInput("cd /non-existing")
             .whenEvaluated()
             .thenOutputContains("cd: /non-existing: No such file or directory");
@@ -179,7 +179,7 @@ final class ShellTests {
     }
 
     @Test
-    void givenCdBuiltIn_whenTildaProvided_thenWorkingDirectoryChangedToHomeDirectory(Dsl dsl, @TempDir Path directory) throws IOException {
+    void givenCdBuiltIn_whenTildaProvided_thenWorkingDirectoryChangedToHomeDirectory(Dsl dsl, @TempDir Path directory) {
         dsl.givenInput(
                 """
                 cd ~
@@ -192,14 +192,14 @@ final class ShellTests {
     }
 
     @Test
-    void givenSingleQuotes_thenArgumentContainedSpaces(Dsl dsl) throws IOException {
+    void givenSingleQuotes_thenArgumentContainedSpaces(Dsl dsl) {
         dsl.givenInput("echo 'first   second'")
             .whenEvaluated()
             .thenOutputContains("first   second");
     }
 
     @Test
-    void givenMultipleSpacesBetweenArguments_thenArgumentsWithoutSpacesPrinted(Dsl dsl) throws IOException {
+    void givenMultipleSpacesBetweenArguments_thenArgumentsWithoutSpacesPrinted(Dsl dsl) {
         dsl.givenInput("echo first   second")
             .whenEvaluated()
             .thenOutputContains("first second");

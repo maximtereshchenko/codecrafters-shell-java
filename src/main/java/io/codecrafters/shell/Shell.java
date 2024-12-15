@@ -3,18 +3,27 @@ package io.codecrafters.shell;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
 
 final class Shell {
 
-    private final Scanner input;
+    private final Iterator<Input> inputIterator;
     private final PrintStream output;
     private final Path initialWorkingDirectory;
     private final Path homeDirectory;
     private final Set<CommandFactory> commandFactories;
 
-    Shell(Scanner input, PrintStream output, Path homeDirectory, Path initialWorkingDirectory, Set<Path> executableCommandDirectories) {
-        this.input = input;
+    Shell(
+        Iterator<Input> inputIterator,
+        PrintStream output,
+        Path homeDirectory,
+        Path initialWorkingDirectory,
+        Set<Path> executableCommandDirectories
+    ) {
+        this.inputIterator = inputIterator;
         this.output = output;
         this.initialWorkingDirectory = initialWorkingDirectory;
         this.homeDirectory = homeDirectory;
@@ -25,15 +34,14 @@ final class Shell {
         var workingDirectory = initialWorkingDirectory;
         while (true) {
             output.print("$ ");
-            var tokens = tokens();
-            if (tokens.isEmpty()) {
+            if (!inputIterator.hasNext()) {
                 return 0;
             }
-            var name = tokens.getFirst();
-            var command = command(name);
+            var input = inputIterator.next();
+            var command = command(input.name());
             if (command.isPresent()) {
                 var executionResult = command.get()
-                    .execute(output, homeDirectory, workingDirectory, tokens.subList(1, tokens.size()));
+                    .execute(output, homeDirectory, workingDirectory, input.arguments());
                 if (executionResult instanceof ExitCode(int code)) {
                     return code;
                 }
@@ -41,7 +49,7 @@ final class Shell {
                     workingDirectory = directory;
                 }
             } else {
-                output.println(name + ": command not found");
+                output.println(input.name() + ": command not found");
             }
         }
     }
@@ -61,40 +69,6 @@ final class Shell {
         );
         set.add(new ExecutableCommandFactory(executableCommandDirectories));
         return set;
-    }
-
-    private List<String> tokens() {
-        if (!input.hasNextLine()) {
-            return List.of();
-        }
-        return tokens(input.nextLine());
-    }
-
-    private List<String> tokens(String line) {
-        var tokens = new ArrayList<String>();
-        var builder = new StringBuilder();
-        var quoted = false;
-        for (var i = 0; i < line.length(); i++) {
-            var current = line.charAt(i);
-            switch (current) {
-                case ' ' -> {
-                    if (quoted) {
-                        builder.append(current);
-                    } else {
-                        if (!builder.isEmpty()) {
-                            tokens.add(builder.toString());
-                        }
-                        builder.setLength(0);
-                    }
-                }
-                case '\'' -> quoted = !quoted;
-                default -> builder.append(current);
-            }
-        }
-        if (!builder.isEmpty()) {
-            tokens.add(builder.toString());
-        }
-        return tokens;
     }
 
     private Optional<Command> command(String name) throws IOException {

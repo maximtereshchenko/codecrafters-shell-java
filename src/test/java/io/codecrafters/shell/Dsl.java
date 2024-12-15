@@ -1,14 +1,13 @@
 package io.codecrafters.shell;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,12 +34,12 @@ final class Dsl {
         return new Dsl(input, workingDirectory, homeDirectory, executableCommandDirectories);
     }
 
-    EvaluationResult whenEvaluated() throws IOException {
+    EvaluationResult whenEvaluated() {
         var output = new ByteArrayOutputStream();
         try {
             return new Success(
                 new Shell(
-                    new Scanner(input),
+                    new Inputs(new Tokens(new StringReader(input))),
                     new PrintStream(output),
                     homeDirectory, workingDirectory,
                     executableCommandDirectories
