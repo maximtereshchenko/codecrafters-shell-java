@@ -9,7 +9,7 @@ abstract class CachingIterator<T> implements Iterator<T> {
     private T next;
 
     @Override
-    public boolean hasNext() {
+    public final boolean hasNext() {
         if (next == null) {
             nextElement().ifPresent(element -> next = element);
         }
@@ -17,7 +17,7 @@ abstract class CachingIterator<T> implements Iterator<T> {
     }
 
     @Override
-    public T next() {
+    public final T next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
