@@ -184,7 +184,7 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onRedirectionOperator() {
-            return new Transition(new ReadingToken(), new RedirectionOperator());
+            return new Transition(new ReadingWhiteSpaces(), new RedirectionOperator());
         }
 
         @Override

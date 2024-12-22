@@ -311,10 +311,19 @@ final class ShellTests {
 
     @Test
     void givenRedirection_thenFileContainedOutput(Dsl dsl, @TempDir Path directory) {
-        dsl.givenInput("echo file content > file")
+        dsl.givenInput("echo content > file")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
             .thenExitCodeIsZero();
-        assertThat(directory.resolve("file")).content().isEqualToIgnoringNewLines("file content");
+        assertThat(directory.resolve("file")).content().isEqualToIgnoringNewLines("content");
+    }
+
+    @Test
+    void givenExplicitOutputRedirection_thenFileContainedOutput(Dsl dsl, @TempDir Path directory) {
+        dsl.givenInput("echo content 1> file")
+            .givenWorkingDirectory(directory)
+            .whenEvaluated()
+            .thenExitCodeIsZero();
+        assertThat(directory.resolve("file")).content().isEqualToIgnoringNewLines("content");
     }
 }
