@@ -24,7 +24,7 @@ final class ReadingWhiteSpaces implements State {
 
     @Override
     public Transition onBackslash() {
-        return transition(new ReadingLiteralCharacterValue(builder, ReadingToken::new));
+        return transition(new ReadingLiteralCharacterValue(ReadingToken::new));
     }
 
     @Override

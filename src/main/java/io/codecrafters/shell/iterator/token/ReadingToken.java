@@ -1,5 +1,7 @@
 package io.codecrafters.shell.iterator.token;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 final class ReadingToken implements State {
@@ -40,7 +42,7 @@ final class ReadingToken implements State {
 
     @Override
     public Transition onRedirectionOperator() {
-        return new Transition(new ReadingWhiteSpaces(), new RedirectionOperator());
+        return new Transition(new ReadingWhiteSpaces(), new Found(tokens()));
     }
 
     @Override
@@ -52,5 +54,14 @@ final class ReadingToken implements State {
     @Override
     public Optional<Token> onEnd() {
         return Optional.of(new Literal(builder));
+    }
+
+    private List<Token> tokens() {
+        var tokes = new ArrayList<Token>();
+        if (!builder.toString().equals("1")) {
+            tokes.add(new Literal(builder));
+        }
+        tokes.add(new RedirectionOperator());
+        return tokes;
     }
 }

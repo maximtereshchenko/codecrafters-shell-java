@@ -12,11 +12,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Optional;
 
-public final class InputInterator extends CachingIterator<Input> {
+public final class InputIterator extends CachingIterator<Input> {
 
     private final Iterator<Token> tokenIterator;
 
-    public InputInterator(Iterator<Token> tokenIterator) {
+    public InputIterator(Iterator<Token> tokenIterator) {
         this.tokenIterator = tokenIterator;
     }
 

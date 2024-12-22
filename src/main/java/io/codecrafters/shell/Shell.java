@@ -2,7 +2,7 @@ package io.codecrafters.shell;
 
 import io.codecrafters.shell.iterator.CharacterIterator;
 import io.codecrafters.shell.iterator.input.Input;
-import io.codecrafters.shell.iterator.input.InputInterator;
+import io.codecrafters.shell.iterator.input.InputIterator;
 import io.codecrafters.shell.iterator.token.TokenIterator;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ final class Shell {
         Set<Path> executableLocations
     ) {
         return new Shell(
-            new InputInterator(new TokenIterator(new CharacterIterator(reader))),
+            new InputIterator(new TokenIterator(new CharacterIterator(reader))),
             output,
             homeDirectory,
             workingDirectory,
