@@ -1,3 +1,3 @@
 package io.codecrafters.shell;
 
-sealed interface Token permits LineBreak, Literal {}
+sealed interface Token permits LineBreak, Literal, RedirectionOperator {}

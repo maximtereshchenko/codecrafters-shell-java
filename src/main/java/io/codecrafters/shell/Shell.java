@@ -2,6 +2,7 @@ package io.codecrafters.shell;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -40,9 +41,7 @@ final class Shell {
             var input = inputIterator.next();
             var commandFactory = commandFactory(input.name());
             if (commandFactory.isPresent()) {
-                var executionResult = commandFactory.get()
-                    .command(homeDirectory, workingDirectory, output)
-                    .execute(input.arguments());
+                var executionResult = executionResult(commandFactory.get(), workingDirectory, input);
                 if (executionResult instanceof ExitCode(int code)) {
                     return code;
                 }
@@ -52,6 +51,19 @@ final class Shell {
             } else {
                 output.println(input.name() + ": command not found");
             }
+        }
+    }
+
+    private ExecutionResult executionResult(CommandFactory commandFactory, Path workingDirectory, Input input) throws IOException {
+        var outputRedirection = input.outputRedirection();
+        if (outputRedirection.isEmpty()) {
+            return commandFactory.command(homeDirectory, workingDirectory, output)
+                .execute(input.arguments());
+        }
+        //TODO refactor
+        try (var fileOutput = new PrintStream(Files.newOutputStream(workingDirectory.resolve(outputRedirection.get())))) {
+            return commandFactory.command(homeDirectory, workingDirectory, fileOutput)
+                .execute(input.arguments());
         }
     }
 

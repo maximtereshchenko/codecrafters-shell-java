@@ -54,7 +54,7 @@ final class Dsl {
         }
     }
 
-    Dsl givenExecutionCommandDirectory(Path directory) {
+    Dsl givenExecutableDirectory(Path directory) {
         var copy = new HashSet<>(executableCommandDirectories);
         copy.add(directory);
         return new Dsl(input, workingDirectory, homeDirectory, copy);

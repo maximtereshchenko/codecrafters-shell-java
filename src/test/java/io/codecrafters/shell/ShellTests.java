@@ -12,6 +12,8 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @ExtendWith(DslExtension.class)
 final class ShellTests {
 
@@ -95,7 +97,7 @@ final class ShellTests {
     void givenTypeBuiltIn_thenExecutableCommandPrinted(Dsl dsl, @TempDir Path directory) throws IOException {
         var executable = Files.createFile(directory.resolve("executable"));
         dsl.givenInput("type executable")
-            .givenExecutionCommandDirectory(directory)
+            .givenExecutableDirectory(directory)
             .whenEvaluated()
             .thenOutputContains("executable is " + executable);
     }
@@ -103,7 +105,7 @@ final class ShellTests {
     @Test
     void givenNotExistingExecutableDirectory_thenNoExceptionThrown(Dsl dsl) {
         dsl.givenInput("invalid_command")
-            .givenExecutionCommandDirectory(Paths.get("not-existing"))
+            .givenExecutableDirectory(Paths.get("not-existing"))
             .whenEvaluated()
             .thenNoExceptionThrown();
     }
@@ -122,7 +124,7 @@ final class ShellTests {
         );
         Files.writeString(executable, "echo command was executed with $1");
         dsl.givenInput("executable argument")
-            .givenExecutionCommandDirectory(directory)
+            .givenExecutableDirectory(directory)
             .whenEvaluated()
             .thenOutputContains("command was executed with argument");
     }
@@ -139,7 +141,7 @@ final class ShellTests {
     void givenExecutableCommandWithBuiltInName_thenBuiltInPrioritized(Dsl dsl, @TempDir Path directory) throws IOException {
         var pwd = Files.createFile(directory.resolve("pwd"));
         dsl.givenInput("type pwd")
-            .givenExecutionCommandDirectory(directory)
+            .givenExecutableDirectory(directory)
             .whenEvaluated()
             .thenOutputContains("pwd is a shell builtin")
             .thenOutputDoesNotContain("pwd is " + pwd);
@@ -302,8 +304,17 @@ final class ShellTests {
         );
         Files.writeString(executable, "echo command was executed with $1");
         dsl.givenInput("'program with spaces' argument")
-            .givenExecutionCommandDirectory(directory)
+            .givenExecutableDirectory(directory)
             .whenEvaluated()
             .thenOutputContains("command was executed with argument");
+    }
+
+    @Test
+    void givenRedirection_thenFileContainedOutput(Dsl dsl, @TempDir Path directory) {
+        dsl.givenInput("echo file content > file")
+            .givenWorkingDirectory(directory)
+            .whenEvaluated()
+            .thenExitCodeIsZero();
+        assertThat(directory.resolve("file")).content().isEqualToIgnoringNewLines("file content");
     }
 }

@@ -43,6 +43,7 @@ final class Tokens extends CachingIterator<Token> {
             case '\'' -> state.onSingleQuote();
             case '"' -> state.onDoubleQuote();
             case '\\' -> state.onBackslash();
+            case '>' -> state.onRedirectionOperator();
             default -> state.onCharacter(next);
         };
     }
@@ -61,6 +62,8 @@ final class Tokens extends CachingIterator<Token> {
         Transition onDoubleQuote();
 
         Transition onBackslash();
+
+        Transition onRedirectionOperator();
 
         Transition onCharacter(char character);
 
@@ -87,6 +90,11 @@ final class Tokens extends CachingIterator<Token> {
         @Override
         public Transition onBackslash() {
             return new Transition(new ReadingLiteralCharacterValue(ReadingToken::new));
+        }
+
+        @Override
+        public Transition onRedirectionOperator() {
+            throw new IllegalStateException();
         }
 
         @Override
@@ -119,6 +127,11 @@ final class Tokens extends CachingIterator<Token> {
 
         @Override
         public Transition onBackslash() {
+            return onSingleQuote();
+        }
+
+        @Override
+        public Transition onRedirectionOperator() {
             return onSingleQuote();
         }
 
@@ -170,6 +183,11 @@ final class Tokens extends CachingIterator<Token> {
         }
 
         @Override
+        public Transition onRedirectionOperator() {
+            return new Transition(new ReadingToken(), new RedirectionOperator());
+        }
+
+        @Override
         public Transition onCharacter(char character) {
             builder.append(character);
             return new Transition(this);
@@ -216,6 +234,11 @@ final class Tokens extends CachingIterator<Token> {
         }
 
         @Override
+        public Transition onRedirectionOperator() {
+            return onCharacter('>');
+        }
+
+        @Override
         public Transition onCharacter(char character) {
             builder.append(character);
             return new Transition(next.apply(builder));
@@ -253,6 +276,11 @@ final class Tokens extends CachingIterator<Token> {
         @Override
         public Transition onBackslash() {
             return transition('\\');
+        }
+
+        @Override
+        public Transition onRedirectionOperator() {
+            return transitionWithEscape('>');
         }
 
         @Override
@@ -309,6 +337,11 @@ final class Tokens extends CachingIterator<Token> {
         }
 
         @Override
+        public Transition onRedirectionOperator() {
+            return onCharacter('>');
+        }
+
+        @Override
         public Transition onCharacter(char character) {
             builder.append(character);
             return new Transition(this);
@@ -353,6 +386,11 @@ final class Tokens extends CachingIterator<Token> {
         }
 
         @Override
+        public Transition onRedirectionOperator() {
+            return onCharacter('>');
+        }
+
+        @Override
         public Transition onCharacter(char character) {
             builder.append(character);
             return new Transition(this);
@@ -387,6 +425,11 @@ final class Tokens extends CachingIterator<Token> {
         @Override
         public Transition onBackslash() {
             return transition(new ReadingLiteralCharacterValue(builder, ReadingToken::new));
+        }
+
+        @Override
+        public Transition onRedirectionOperator() {
+            return combined(new Transition(new ReadingWhiteSpaces(), new RedirectionOperator()));
         }
 
         @Override
