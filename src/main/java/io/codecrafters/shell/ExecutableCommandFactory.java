@@ -1,36 +1,55 @@
 package io.codecrafters.shell;
 
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.PrintStream;
 import java.nio.file.Path;
-import java.util.Optional;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Stream;
 
 final class ExecutableCommandFactory implements CommandFactory {
 
-    private final Set<Path> directories;
+    private final Path path;
 
-    ExecutableCommandFactory(Set<Path> directories) {
-        this.directories = directories;
+    ExecutableCommandFactory(Path path) {
+        this.path = path;
     }
 
     @Override
-    public Optional<Command> command(String name) throws IOException {
-        for (var directory : directories) {
-            if (Files.exists(directory)) {
-                try (var stream = Files.list(directory)) {
-                    var executableCommand = stream.filter(Files::isRegularFile)
-                        .filter(path -> path.getFileName().toString().equals(name))
-                        .map(Path::normalize)
-                        .map(Path::toAbsolutePath)
-                        .map(ExecutableCommand::new)
-                        .findAny();
-                    if (executableCommand.isPresent()) {
-                        return Optional.of(executableCommand.get());
-                    }
-                }
-            }
+    public CommandType type() {
+        return new Executable(path);
+    }
+
+    @Override
+    public Command command(PrintStream output, Path homeDirectory, Path workingDirectory) {
+        return arguments -> {
+            var process = process(output, arguments);
+            wait(process);
+            return new NoExecutionResult();
+        };
+    }
+
+    private void wait(Process process) {
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
-        return Optional.empty();
+    }
+
+    private Process process(PrintStream output, List<String> arguments) throws IOException {
+        var process = new ProcessBuilder(fullCommand(arguments))
+            .redirectOutput(ProcessBuilder.Redirect.PIPE)
+            .redirectErrorStream(true)
+            .start();
+        process.getInputStream().transferTo(output);
+        return process;
+    }
+
+    private List<String> fullCommand(List<String> arguments) {
+        return Stream.concat(
+                Stream.of(path.toString()),
+                arguments.stream()
+            )
+            .toList();
     }
 }

@@ -1,9 +1,11 @@
 package io.codecrafters.shell;
 
-import java.io.IOException;
-import java.util.Optional;
+import java.io.PrintStream;
+import java.nio.file.Path;
 
 interface CommandFactory {
 
-    Optional<Command> command(String name) throws IOException;
+    CommandType type();
+
+    Command command(PrintStream output, Path homeDirectory, Path workingDirectory);
 }

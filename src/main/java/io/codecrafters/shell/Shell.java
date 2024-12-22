@@ -14,20 +14,20 @@ final class Shell {
     private final PrintStream output;
     private final Path initialWorkingDirectory;
     private final Path homeDirectory;
-    private final Set<CommandFactory> commandFactories;
+    private final Set<Location> locations;
 
     Shell(
         Iterator<Input> inputIterator,
         PrintStream output,
         Path homeDirectory,
         Path initialWorkingDirectory,
-        Set<Path> executableCommandDirectories
+        Set<Path> executableDirectories
     ) {
         this.inputIterator = inputIterator;
         this.output = output;
         this.initialWorkingDirectory = initialWorkingDirectory;
         this.homeDirectory = homeDirectory;
-        this.commandFactories = commandFactories(executableCommandDirectories);
+        this.locations = locations(executableDirectories);
     }
 
     int evaluate() throws IOException {
@@ -38,10 +38,11 @@ final class Shell {
                 return 0;
             }
             var input = inputIterator.next();
-            var command = command(input.name());
-            if (command.isPresent()) {
-                var executionResult = command.get()
-                    .execute(output, homeDirectory, workingDirectory, input.arguments());
+            var commandFactory = commandFactory(input.name());
+            if (commandFactory.isPresent()) {
+                var executionResult = commandFactory.get()
+                    .command(output, homeDirectory, workingDirectory)
+                    .execute(input.arguments());
                 if (executionResult instanceof ExitCode(int code)) {
                     return code;
                 }
@@ -54,28 +55,28 @@ final class Shell {
         }
     }
 
-    private Set<CommandFactory> commandFactories(Set<Path> executableCommandDirectories) {
-        var set = new LinkedHashSet<CommandFactory>();
+    private Set<Location> locations(Set<Path> directories) {
+        var set = new LinkedHashSet<Location>();
         set.add(
-            new BuiltInCommandFactory(
+            new BuiltIns(
                 Set.of(
-                    new Echo(),
-                    new Pwd(),
-                    new Cd(),
-                    new Type(set),
-                    new Exit()
+                    new EchoCommandFactory(),
+                    new PwdCommandFactory(),
+                    new CdCommandFactory(),
+                    new TypeCommandFactory(set),
+                    new ExitCommandFactory()
                 )
             )
         );
-        set.add(new ExecutableCommandFactory(executableCommandDirectories));
+        set.add(new Executables(directories));
         return set;
     }
 
-    private Optional<Command> command(String name) throws IOException {
-        for (var commandFactory : commandFactories) {
-            var command = commandFactory.command(name);
-            if (command.isPresent()) {
-                return command;
+    private Optional<CommandFactory> commandFactory(String name) throws IOException {
+        for (var location : locations) {
+            var commandFactory = location.commandFactory(name);
+            if (commandFactory.isPresent()) {
+                return commandFactory;
             }
         }
         return Optional.empty();

@@ -4,14 +4,13 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 
-final class Type implements BuiltInCommand {
+final class TypeCommandFactory implements BuiltInCommandFactory {
 
-    private final LinkedHashSet<CommandFactory> other;
+    private final LinkedHashSet<Location> other;
 
-    Type(LinkedHashSet<CommandFactory> other) {
+    TypeCommandFactory(LinkedHashSet<Location> other) {
         this.other = other;
     }
 
@@ -21,20 +20,17 @@ final class Type implements BuiltInCommand {
     }
 
     @Override
-    public ExecutionResult execute(
-        PrintStream output,
-        Path homeDirectory,
-        Path workingDirectory,
-        List<String> arguments
-    ) throws IOException {
-        output.println(description(arguments.getFirst()));
-        return new NoExecutionResult();
+    public Command command(PrintStream output, Path homeDirectory, Path workingDirectory) {
+        return arguments -> {
+            output.println(description(arguments.getFirst()));
+            return new NoExecutionResult();
+        };
     }
 
     private String description(String name) throws IOException {
         for (var commandFactory : other) {
-            var description = commandFactory.command(name)
-                .map(Command::type)
+            var description = commandFactory.commandFactory(name)
+                .map(CommandFactory::type)
                 .flatMap(type -> description(type, name));
             if (description.isPresent()) {
                 return description.get();

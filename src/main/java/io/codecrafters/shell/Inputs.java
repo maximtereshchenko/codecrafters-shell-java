@@ -30,6 +30,6 @@ final class Inputs extends CachingIterator<Input> {
         if (buffer.isEmpty()) {
             return nextElement();
         }
-        return Optional.of(new Input(buffer.getFirst(), buffer.subList(1, buffer.size())));
+        return Optional.of(new Input(buffer.getFirst(), buffer.subList(1, buffer.size()), Optional.empty()));
     }
 }
