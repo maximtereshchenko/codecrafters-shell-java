@@ -11,7 +11,7 @@ final class ExitCommandFactory implements BuiltInCommandFactory {
     }
 
     @Override
-    public Command command(PrintStream output, Path homeDirectory, Path workingDirectory) {
+    public Command command(Path homeDirectory, Path workingDirectory, PrintStream output) {
         return arguments -> new ExitCode(0);
     }
 }

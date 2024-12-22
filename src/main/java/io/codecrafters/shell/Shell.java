@@ -41,7 +41,7 @@ final class Shell {
             var commandFactory = commandFactory(input.name());
             if (commandFactory.isPresent()) {
                 var executionResult = commandFactory.get()
-                    .command(output, homeDirectory, workingDirectory)
+                    .command(homeDirectory, workingDirectory, output)
                     .execute(input.arguments());
                 if (executionResult instanceof ExitCode(int code)) {
                     return code;

@@ -1,7 +1,6 @@
 package io.codecrafters.shell;
 
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 final class CdCommandFactory implements BuiltInCommandFactory {
@@ -12,17 +11,7 @@ final class CdCommandFactory implements BuiltInCommandFactory {
     }
 
     @Override
-    public Command command(PrintStream output, Path homeDirectory, Path workingDirectory) {
-        return arguments -> {
-            var path = workingDirectory.resolve(
-                    arguments.getFirst().replace("~", homeDirectory.toString())
-                )
-                .normalize();
-            if (!Files.exists(path)) {
-                output.printf("cd: %s: No such file or directory%n", arguments.getFirst());
-                return new NoExecutionResult();
-            }
-            return new WorkingDirectory(path);
-        };
+    public Command command(Path homeDirectory, Path workingDirectory, PrintStream output) {
+        return new Cd(homeDirectory, workingDirectory, output);
     }
 }

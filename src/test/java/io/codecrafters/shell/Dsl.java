@@ -29,7 +29,7 @@ final class Dsl {
     }
 
     Dsl() {
-        this("", Paths.get(""), Paths.get(""), Set.of());
+        this("", Paths.get("").toAbsolutePath(), Paths.get("").toAbsolutePath(), Set.of());
     }
 
     Dsl givenInput(String input) {

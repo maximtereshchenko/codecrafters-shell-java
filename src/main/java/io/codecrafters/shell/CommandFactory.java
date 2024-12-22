@@ -7,5 +7,5 @@ interface CommandFactory {
 
     CommandType type();
 
-    Command command(PrintStream output, Path homeDirectory, Path workingDirectory);
+    Command command(Path homeDirectory, Path workingDirectory, PrintStream output);
 }
