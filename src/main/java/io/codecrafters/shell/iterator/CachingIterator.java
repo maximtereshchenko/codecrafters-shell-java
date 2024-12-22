@@ -1,10 +1,10 @@
-package io.codecrafters.shell;
+package io.codecrafters.shell.iterator;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-abstract class CachingIterator<T> implements Iterator<T> {
+public abstract class CachingIterator<T> implements Iterator<T> {
 
     private T next;
 
@@ -26,5 +26,5 @@ abstract class CachingIterator<T> implements Iterator<T> {
         return result;
     }
 
-    abstract Optional<T> nextElement();
+    protected abstract Optional<T> nextElement();
 }

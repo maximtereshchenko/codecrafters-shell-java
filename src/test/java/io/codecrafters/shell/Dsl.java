@@ -7,7 +7,6 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,33 +18,34 @@ final class Dsl {
     private final String input;
     private final Path workingDirectory;
     private final Path homeDirectory;
-    private final Set<Path> executableCommandDirectories;
+    private final Set<Path> executableLocations;
 
-    private Dsl(String input, Path workingDirectory, Path homeDirectory, Set<Path> executableCommandDirectories) {
+    private Dsl(String input, Path workingDirectory, Path homeDirectory, Set<Path> executableLocations) {
         this.input = input;
         this.workingDirectory = workingDirectory;
         this.homeDirectory = homeDirectory;
-        this.executableCommandDirectories = executableCommandDirectories;
+        this.executableLocations = executableLocations;
     }
 
-    Dsl() {
-        this("", Paths.get("").toAbsolutePath(), Paths.get("").toAbsolutePath(), Set.of());
+    Dsl(Path path) {
+        this("", path, path, Set.of());
     }
 
     Dsl givenInput(String input) {
-        return new Dsl(input, workingDirectory, homeDirectory, executableCommandDirectories);
+        return new Dsl(input, workingDirectory, homeDirectory, executableLocations);
     }
 
     EvaluationResult whenEvaluated() {
         var output = new ByteArrayOutputStream();
         try {
             return new Success(
-                new Shell(
-                    new Inputs(new Tokens(new Characters(new StringReader(input)))),
-                    new PrintStream(output),
-                    homeDirectory, workingDirectory,
-                    executableCommandDirectories
-                )
+                Shell.from(
+                        new StringReader(input),
+                        new PrintStream(output),
+                        homeDirectory,
+                        workingDirectory,
+                        executableLocations
+                    )
                     .evaluate(),
                 List.of(output.toString(StandardCharsets.UTF_8).split(System.lineSeparator()))
             );
@@ -54,18 +54,18 @@ final class Dsl {
         }
     }
 
-    Dsl givenExecutableDirectory(Path directory) {
-        var copy = new HashSet<>(executableCommandDirectories);
+    Dsl givenExecutableLocation(Path directory) {
+        var copy = new HashSet<>(executableLocations);
         copy.add(directory);
         return new Dsl(input, workingDirectory, homeDirectory, copy);
     }
 
     Dsl givenWorkingDirectory(Path directory) {
-        return new Dsl(input, directory, homeDirectory, executableCommandDirectories);
+        return new Dsl(input, directory, homeDirectory, executableLocations);
     }
 
     Dsl givenHomeDirectory(Path directory) {
-        return new Dsl(input, workingDirectory, directory, executableCommandDirectories);
+        return new Dsl(input, workingDirectory, directory, executableLocations);
     }
 
     interface EvaluationResult {

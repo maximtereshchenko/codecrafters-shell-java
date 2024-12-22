@@ -1,7 +1,13 @@
 package io.codecrafters.shell;
 
+import io.codecrafters.shell.iterator.CharacterIterator;
+import io.codecrafters.shell.iterator.input.Input;
+import io.codecrafters.shell.iterator.input.InputInterator;
+import io.codecrafters.shell.iterator.token.TokenIterator;
+
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -17,18 +23,34 @@ final class Shell {
     private final Path homeDirectory;
     private final Set<Location> locations;
 
-    Shell(
+    private Shell(
         Iterator<Input> inputIterator,
         PrintStream output,
         Path homeDirectory,
         Path initialWorkingDirectory,
-        Set<Path> executableDirectories
+        Set<Path> executableLocations
     ) {
         this.inputIterator = inputIterator;
         this.output = output;
         this.initialWorkingDirectory = initialWorkingDirectory;
         this.homeDirectory = homeDirectory;
-        this.locations = locations(executableDirectories);
+        this.locations = locations(executableLocations);
+    }
+
+    static Shell from(
+        Reader reader,
+        PrintStream output,
+        Path homeDirectory,
+        Path workingDirectory,
+        Set<Path> executableLocations
+    ) {
+        return new Shell(
+            new InputInterator(new TokenIterator(new CharacterIterator(reader))),
+            output,
+            homeDirectory,
+            workingDirectory,
+            executableLocations
+        );
     }
 
     int evaluate() throws IOException {

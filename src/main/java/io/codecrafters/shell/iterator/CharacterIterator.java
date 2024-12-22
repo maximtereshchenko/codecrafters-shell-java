@@ -1,20 +1,20 @@
-package io.codecrafters.shell;
+package io.codecrafters.shell.iterator;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 
-final class Characters extends CachingIterator<Character> {
+public final class CharacterIterator extends CachingIterator<Character> {
 
     private final Reader reader;
 
-    Characters(Reader reader) {
+    public CharacterIterator(Reader reader) {
         this.reader = reader;
     }
 
     @Override
-    Optional<Character> nextElement() {
+    protected Optional<Character> nextElement() {
         try {
             var next = reader.read();
             if (next == -1) {

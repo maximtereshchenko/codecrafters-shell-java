@@ -11,16 +11,17 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        new Shell(
-            new Inputs(new Tokens(new Characters(new InputStreamReader(System.in)))),
-            System.out,
-            path(System.getenv("HOME")), path(""),
-            executableCommandDirectories()
-        )
+        Shell.from(
+                new InputStreamReader(System.in),
+                System.out,
+                path(System.getenv("HOME")),
+                path(""),
+                executableLocations()
+            )
             .evaluate();
     }
 
-    private static Set<Path> executableCommandDirectories() {
+    private static Set<Path> executableLocations() {
         return Stream.of(System.getenv("PATH").split(":"))
             .map(Main::path)
             .collect(Collectors.toSet());

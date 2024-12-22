@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
+import java.nio.file.Paths;
+
 final class DslExtension implements ParameterResolver {
 
     @Override
@@ -14,6 +16,6 @@ final class DslExtension implements ParameterResolver {
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return new Dsl();
+        return new Dsl(Paths.get("").toAbsolutePath());
     }
 }

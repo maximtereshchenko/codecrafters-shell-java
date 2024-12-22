@@ -1,4 +1,10 @@
-package io.codecrafters.shell;
+package io.codecrafters.shell.iterator.input;
+
+import io.codecrafters.shell.iterator.CachingIterator;
+import io.codecrafters.shell.iterator.token.LineBreak;
+import io.codecrafters.shell.iterator.token.Literal;
+import io.codecrafters.shell.iterator.token.RedirectionOperator;
+import io.codecrafters.shell.iterator.token.Token;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -6,16 +12,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Optional;
 
-final class Inputs extends CachingIterator<Input> {
+public final class InputInterator extends CachingIterator<Input> {
 
     private final Iterator<Token> tokenIterator;
 
-    Inputs(Iterator<Token> tokenIterator) {
+    public InputInterator(Iterator<Token> tokenIterator) {
         this.tokenIterator = tokenIterator;
     }
 
     @Override
-    Optional<Input> nextElement() {
+    protected Optional<Input> nextElement() {
         if (!tokenIterator.hasNext()) {
             return Optional.empty();
         }

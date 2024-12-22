@@ -97,15 +97,15 @@ final class ShellTests {
     void givenTypeBuiltIn_thenExecutableCommandPrinted(Dsl dsl, @TempDir Path directory) throws IOException {
         var executable = Files.createFile(directory.resolve("executable"));
         dsl.givenInput("type executable")
-            .givenExecutableDirectory(directory)
+            .givenExecutableLocation(directory)
             .whenEvaluated()
             .thenOutputContains("executable is " + executable);
     }
 
     @Test
-    void givenNotExistingExecutableDirectory_thenNoExceptionThrown(Dsl dsl) {
+    void givenNonexistentExecutableDirectory_thenNoExceptionThrown(Dsl dsl) {
         dsl.givenInput("invalid_command")
-            .givenExecutableDirectory(Paths.get("not-existing"))
+            .givenExecutableLocation(Paths.get("nonexistent"))
             .whenEvaluated()
             .thenNoExceptionThrown();
     }
@@ -124,7 +124,7 @@ final class ShellTests {
         );
         Files.writeString(executable, "echo command was executed with $1");
         dsl.givenInput("executable argument")
-            .givenExecutableDirectory(directory)
+            .givenExecutableLocation(directory)
             .whenEvaluated()
             .thenOutputContains("command was executed with argument");
     }
@@ -141,7 +141,7 @@ final class ShellTests {
     void givenExecutableCommandWithBuiltInName_thenBuiltInPrioritized(Dsl dsl, @TempDir Path directory) throws IOException {
         var pwd = Files.createFile(directory.resolve("pwd"));
         dsl.givenInput("type pwd")
-            .givenExecutableDirectory(directory)
+            .givenExecutableLocation(directory)
             .whenEvaluated()
             .thenOutputContains("pwd is a shell builtin")
             .thenOutputDoesNotContain("pwd is " + pwd);
@@ -162,10 +162,10 @@ final class ShellTests {
     }
 
     @Test
-    void givenCdBuiltIn_whenNonExistingPathProvided_thenNoSuchDirectoryPrinted(Dsl dsl) {
-        dsl.givenInput("cd /non-existing")
+    void givenCdBuiltIn_whenNonexistentPathProvided_thenNoSuchDirectoryPrinted(Dsl dsl) {
+        dsl.givenInput("cd /nonexistent")
             .whenEvaluated()
-            .thenOutputContains("cd: /non-existing: No such file or directory");
+            .thenOutputContains("cd: /nonexistent: No such file or directory");
     }
 
     @Test
@@ -304,7 +304,7 @@ final class ShellTests {
         );
         Files.writeString(executable, "echo command was executed with $1");
         dsl.givenInput("'program with spaces' argument")
-            .givenExecutableDirectory(directory)
+            .givenExecutableLocation(directory)
             .whenEvaluated()
             .thenOutputContains("command was executed with argument");
     }

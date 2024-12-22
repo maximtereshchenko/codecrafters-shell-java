@@ -1,20 +1,22 @@
-package io.codecrafters.shell;
+package io.codecrafters.shell.iterator.token;
+
+import io.codecrafters.shell.iterator.CachingIterator;
 
 import java.util.*;
 import java.util.function.Function;
 
-final class Tokens extends CachingIterator<Token> {
+public final class TokenIterator extends CachingIterator<Token> {
 
     private final Iterator<Character> characterIterator;
     private final Queue<Token> queue = new LinkedList<>();
     private State state = new Initial();
 
-    Tokens(Iterator<Character> characterIterator) {
+    public TokenIterator(Iterator<Character> characterIterator) {
         this.characterIterator = characterIterator;
     }
 
     @Override
-    Optional<Token> nextElement() {
+    protected Optional<Token> nextElement() {
         if (queue.isEmpty()) {
             queueNextTokens();
         }
