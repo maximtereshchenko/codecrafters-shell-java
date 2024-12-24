@@ -41,9 +41,15 @@ final class ExpressionIteratorTests {
     }
 
     @Test
-    void givenRedirectionOperator_thenOutputRedirection() {
+    void givenOutputRedirection_thenOutputRedirection() {
         assertThat(expressions(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal("file")))
             .containsExactly(new OutputRedirection(new Command("command"), Paths.get("file")));
+    }
+
+    @Test
+    void givenErrorRedirection_thenErrorRedirection() {
+        assertThat(expressions(new Literal("command"), SimpleToken.ERROR_REDIRECTION, new Literal("file")))
+            .containsExactly(new ErrorRedirection(new Command("command"), Paths.get("file")));
     }
 
     private Iterable<Expression> expressions(String... literals) {

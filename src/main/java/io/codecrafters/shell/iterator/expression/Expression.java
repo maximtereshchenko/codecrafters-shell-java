@@ -1,3 +1,3 @@
 package io.codecrafters.shell.iterator.expression;
 
-public sealed interface Expression permits Command, OutputRedirection {}
+public sealed interface Expression permits Command, ErrorRedirection, OutputRedirection {}

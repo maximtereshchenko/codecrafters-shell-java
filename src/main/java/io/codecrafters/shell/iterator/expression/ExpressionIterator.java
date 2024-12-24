@@ -5,10 +5,12 @@ import io.codecrafters.shell.iterator.token.Literal;
 import io.codecrafters.shell.iterator.token.SimpleToken;
 import io.codecrafters.shell.iterator.token.Token;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.function.Function;
 
 public final class ExpressionIterator extends CachingIterator<Expression> {
 
@@ -40,22 +42,23 @@ public final class ExpressionIterator extends CachingIterator<Expression> {
                 }
                 case Literal(var value) -> arguments.add(value);
                 case SimpleToken.OUTPUT_REDIRECTION -> {
-                    return outputRedirection(new Command(name, arguments));
+                    return redirection(path -> new OutputRedirection(new Command(name, arguments), path));
                 }
-                case SimpleToken.ERROR_REDIRECTION -> throw new IllegalStateException();
+                case SimpleToken.ERROR_REDIRECTION -> {
+                    return redirection(path -> new ErrorRedirection(new Command(name, arguments), path));
+                }
             }
         }
         return new Command(name, arguments);
     }
 
-    private OutputRedirection outputRedirection(Expression expression) {
+    private Expression redirection(Function<Path, Expression> function) {
         if (!tokenIterator.hasNext()) {
             throw new IllegalStateException();
         }
         return switch (tokenIterator.next()) {
-            case SimpleToken.LINE_BREAK -> throw new IllegalStateException();
-            case Literal(var value) -> new OutputRedirection(expression, Paths.get(value));
-            case SimpleToken.OUTPUT_REDIRECTION, SimpleToken.ERROR_REDIRECTION -> throw new IllegalStateException();
+            case SimpleToken.LINE_BREAK, SimpleToken.OUTPUT_REDIRECTION, SimpleToken.ERROR_REDIRECTION -> throw new IllegalStateException();
+            case Literal(var value) -> function.apply(Paths.get(value));
         };
     }
 }
