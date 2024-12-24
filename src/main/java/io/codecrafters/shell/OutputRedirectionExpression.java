@@ -2,12 +2,12 @@ package io.codecrafters.shell;
 
 import java.io.PrintStream;
 
-final class Redirection implements ExecutableExpression {
+final class OutputRedirectionExpression implements ExecutableExpression {
 
     private final PrintStream printStream;
     private final ExecutableExpression downstream;
 
-    Redirection(PrintStream printStream, ExecutableExpression downstream) {
+    OutputRedirectionExpression(PrintStream printStream, ExecutableExpression downstream) {
         this.printStream = printStream;
         this.downstream = downstream;
     }

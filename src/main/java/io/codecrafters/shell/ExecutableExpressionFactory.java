@@ -1,6 +1,7 @@
 package io.codecrafters.shell;
 
 import io.codecrafters.shell.iterator.expression.Command;
+import io.codecrafters.shell.iterator.expression.ErrorRedirection;
 import io.codecrafters.shell.iterator.expression.Expression;
 import io.codecrafters.shell.iterator.expression.OutputRedirection;
 
@@ -11,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 final class ExecutableExpressionFactory {
 
@@ -40,12 +42,29 @@ final class ExecutableExpressionFactory {
             case OutputRedirection(var redirected, var path) -> executableExpression(
                 workingDirectory,
                 redirected,
-                new Redirection(
-                    new PrintStream(Files.newOutputStream(workingDirectory.resolve(path))),
-                    downstream
-                )
+                path,
+                printStream -> new OutputRedirectionExpression(printStream, downstream)
+            );
+            case ErrorRedirection(var redirected, var path) -> executableExpression(
+                workingDirectory,
+                redirected,
+                path,
+                printStream -> new ErrorRedirectionExpression(printStream, downstream)
             );
         };
+    }
+
+    private ExecutableExpression executableExpression(
+        Path workingDirectory,
+        Expression redirected,
+        Path path,
+        Function<PrintStream, ExecutableExpression> function
+    ) throws IOException {
+        return executableExpression(
+            workingDirectory,
+            redirected,
+            function.apply(new PrintStream(Files.newOutputStream(workingDirectory.resolve(path))))
+        );
     }
 
     private ExecutableExpression command(Path workingDirectory, Command command, ExecutableExpression downstream) {

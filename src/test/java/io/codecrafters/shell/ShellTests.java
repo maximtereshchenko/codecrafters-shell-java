@@ -317,7 +317,7 @@ final class ShellTests {
     }
 
     @Test
-    void givenRedirection_thenFileContainedOutput(Dsl dsl, @TempDir Path directory) {
+    void givenOutputRedirection_thenFileContainedOutput(Dsl dsl, @TempDir Path directory) {
         dsl.givenInput("echo content > file")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
@@ -335,11 +335,23 @@ final class ShellTests {
     }
 
     @Test
-    void givenExplicitOutputRedirection_thenStandardErrorNotRedirected(Dsl dsl, @TempDir Path directory) {
+    void givenOutputRedirection_thenStandardErrorNotRedirected(Dsl dsl, @TempDir Path directory) {
         dsl.givenInput("cd /nonexistent > file")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
             .thenErrorContains("cd: /nonexistent: No such file or directory");
         assertThat(directory.resolve("file")).isEmptyFile();
     }
+
+    @Test
+    void givenErrorRedirection_thenFileContainedErrorOutput(Dsl dsl, @TempDir Path directory) {
+        dsl.givenInput("cd /nonexistent 2> file")
+            .givenWorkingDirectory(directory)
+            .whenEvaluated()
+            .thenFinishedWith(EvaluationResult.SUCCESS);
+        assertThat(directory.resolve("file"))
+            .content()
+            .isEqualToIgnoringNewLines("cd: /nonexistent: No such file or directory");
+    }
+
 }
