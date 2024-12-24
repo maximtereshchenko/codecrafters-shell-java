@@ -52,19 +52,22 @@ final class Shell {
 
     EvaluationResult evaluationResult() {
         var workingDirectory = initialWorkingDirectory;
-        output.print("$ ");
-        while (expressionIterator.hasNext()) {
+        do {
+            output.print("$ ");
+            if (!expressionIterator.hasNext()) {
+                return EvaluationResult.SUCCESS;
+            }
             try (var expression = factory.executableExpression(workingDirectory, expressionIterator.next())) {
                 switch (expression.onEnd()) {
                     case Exit ignored -> {
                         return EvaluationResult.FAILURE;
                     }
-                    case NoExecutionResult ignored -> {}
+                    case NoExecutionResult ignored -> {
+                        //empty
+                    }
                     case WorkingDirectory(var path) -> workingDirectory = path;
                 }
             }
-            output.print("$ ");
-        }
-        return EvaluationResult.SUCCESS;
+        } while (true);
     }
 }

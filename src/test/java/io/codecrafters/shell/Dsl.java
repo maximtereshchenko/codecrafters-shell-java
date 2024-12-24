@@ -1,12 +1,11 @@
 package io.codecrafters.shell;
 
-import org.assertj.core.api.SoftAssertions;
-
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -129,23 +128,35 @@ final class Dsl {
             doesNotContain(error, notExpected);
         }
 
-        private void doesNotContain(List<String> lines, String notExpected) {
-            assertThat(lines).noneMatch(line -> line.contains(notExpected));
-        }
-
         @Override
         public void thenNoExceptionThrown() {
             //empty
         }
 
+        private void doesNotContain(List<String> lines, String notExpected) {
+            assertThat(lines).noneMatch(line -> line.contains(notExpected));
+        }
+
         private void contains(List<String> lines, String... expected) {
-            var soft = new SoftAssertions();
-            for (var element : expected) {
-                soft.assertThat(lines)
-                    .describedAs("At least one line should contain '%s'", element)
-                    .anyMatch(line -> line.contains(element));
+            var remainingElements = new ArrayList<>(List.of(expected));
+            var remainingLines = new ArrayList<>(lines);
+            var remainingElementsIterator = remainingElements.listIterator();
+            while (remainingElementsIterator.hasNext()) {
+                var element = remainingElementsIterator.next();
+                var remainingLinesIterator = remainingLines.listIterator();
+                while (remainingLinesIterator.hasNext()) {
+                    var line = remainingLinesIterator.next();
+                    if (line.contains(element)) {
+                        remainingLinesIterator.remove();
+                        remainingElementsIterator.remove();
+                        break;
+                    }
+                }
             }
-            soft.assertAll();
+            assertThat(remainingElements)
+                .describedAs("%s should contain all %s", lines, List.of(expected))
+                .overridingErrorMessage("but missing %s", remainingElements)
+                .isEmpty();
         }
     }
 

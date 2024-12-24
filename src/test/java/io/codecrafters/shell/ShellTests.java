@@ -59,6 +59,13 @@ final class ShellTests {
     }
 
     @Test
+    void givenCommand_thenPromptPrintedTwice(Dsl dsl) {
+        dsl.givenInput("echo" + System.lineSeparator())
+            .whenEvaluated()
+            .thenOutputContains("$ ", "$ ");
+    }
+
+    @Test
     void givenEchoBuiltIn_thenArgumentsPrinted(Dsl dsl) {
         dsl.givenInput("echo first second")
             .whenEvaluated()
