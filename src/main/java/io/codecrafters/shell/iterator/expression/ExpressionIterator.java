@@ -1,9 +1,8 @@
 package io.codecrafters.shell.iterator.expression;
 
 import io.codecrafters.shell.iterator.CachingIterator;
-import io.codecrafters.shell.iterator.token.LineBreak;
 import io.codecrafters.shell.iterator.token.Literal;
-import io.codecrafters.shell.iterator.token.RedirectionOperator;
+import io.codecrafters.shell.iterator.token.SimpleToken;
 import io.codecrafters.shell.iterator.token.Token;
 
 import java.nio.file.Paths;
@@ -25,9 +24,9 @@ public final class ExpressionIterator extends CachingIterator<Expression> {
             return Optional.empty();
         }
         return switch (tokenIterator.next()) {
-            case LineBreak ignored -> nextElement();
+            case SimpleToken.LINE_BREAK -> nextElement();
             case Literal(var value) -> Optional.of(command(value));
-            case RedirectionOperator ignored -> throw new IllegalStateException();
+            case SimpleToken.OUTPUT_REDIRECTION, SimpleToken.ERROR_REDIRECTION -> throw new IllegalStateException();
         };
     }
 
@@ -36,13 +35,14 @@ public final class ExpressionIterator extends CachingIterator<Expression> {
         while (tokenIterator.hasNext()) {
             var next = tokenIterator.next();
             switch (next) {
-                case LineBreak ignored -> {
+                case SimpleToken.LINE_BREAK -> {
                     return new Command(name, arguments);
                 }
                 case Literal(var value) -> arguments.add(value);
-                case RedirectionOperator ignored -> {
+                case SimpleToken.OUTPUT_REDIRECTION -> {
                     return outputRedirection(new Command(name, arguments));
                 }
+                case SimpleToken.ERROR_REDIRECTION -> throw new IllegalStateException();
             }
         }
         return new Command(name, arguments);
@@ -53,9 +53,9 @@ public final class ExpressionIterator extends CachingIterator<Expression> {
             throw new IllegalStateException();
         }
         return switch (tokenIterator.next()) {
-            case LineBreak ignored -> throw new IllegalStateException();
+            case SimpleToken.LINE_BREAK -> throw new IllegalStateException();
             case Literal(var value) -> new OutputRedirection(expression, Paths.get(value));
-            case RedirectionOperator ignored -> throw new IllegalStateException();
+            case SimpleToken.OUTPUT_REDIRECTION, SimpleToken.ERROR_REDIRECTION -> throw new IllegalStateException();
         };
     }
 }

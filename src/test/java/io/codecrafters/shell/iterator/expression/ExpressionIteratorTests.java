@@ -1,8 +1,7 @@
 package io.codecrafters.shell.iterator.expression;
 
-import io.codecrafters.shell.iterator.token.LineBreak;
 import io.codecrafters.shell.iterator.token.Literal;
-import io.codecrafters.shell.iterator.token.RedirectionOperator;
+import io.codecrafters.shell.iterator.token.SimpleToken;
 import io.codecrafters.shell.iterator.token.Token;
 import org.junit.jupiter.api.Test;
 
@@ -32,18 +31,18 @@ final class ExpressionIteratorTests {
 
     @Test
     void givenLiteralsWithLineBreak_thenMultipleCommands() {
-        assertThat(expressions(new Literal("first"), new LineBreak(), new Literal("second")))
+        assertThat(expressions(new Literal("first"), SimpleToken.LINE_BREAK, new Literal("second")))
             .containsExactly(new Command("first"), new Command("second"));
     }
 
     @Test
     void givenLineBreaks_thenNoExpressions() {
-        assertThat(expressions(new LineBreak(), new LineBreak())).isEmpty();
+        assertThat(expressions(SimpleToken.LINE_BREAK, SimpleToken.LINE_BREAK)).isEmpty();
     }
 
     @Test
     void givenRedirectionOperator_thenOutputRedirection() {
-        assertThat(expressions(new Literal("command"), new RedirectionOperator(), new Literal("file")))
+        assertThat(expressions(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal("file")))
             .containsExactly(new OutputRedirection(new Command("command"), Paths.get("file")));
     }
 

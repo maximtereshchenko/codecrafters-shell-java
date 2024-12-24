@@ -68,7 +68,7 @@ final class ReadingToken implements State {
         if (!builder.toString().equals("1")) {
             tokes.add(new Literal(builder));
         }
-        tokes.add(new RedirectionOperator());
+        tokes.add(SimpleToken.OUTPUT_REDIRECTION);
         return tokes;
     }
 }

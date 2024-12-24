@@ -30,7 +30,7 @@ final class ReadingWhiteSpaces implements State {
 
     @Override
     public Transition onRedirectionOperator() {
-        return combined(new Transition(new ReadingWhiteSpaces(), new RedirectionOperator()));
+        return combined(new Transition(new ReadingWhiteSpaces(), SimpleToken.OUTPUT_REDIRECTION));
     }
 
     @Override
@@ -67,6 +67,6 @@ final class ReadingWhiteSpaces implements State {
             return Optional.empty();
         }
         builder.setLength(0);
-        return Optional.of(new LineBreak());
+        return Optional.of(SimpleToken.LINE_BREAK);
     }
 }

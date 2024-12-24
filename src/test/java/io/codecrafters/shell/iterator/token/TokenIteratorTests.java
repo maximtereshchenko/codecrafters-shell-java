@@ -244,25 +244,25 @@ final class TokenIteratorTests {
     @Test
     void givenRedirectionOperatorNextToToken_thenTokens() {
         assertThat(tokens("first> second"))
-            .containsExactly(new Literal("first"), new RedirectionOperator(), new Literal("second"));
+            .containsExactly(new Literal("first"), SimpleToken.OUTPUT_REDIRECTION, new Literal("second"));
     }
 
     @Test
     void givenSpaceBeforeRedirectionOperator_thenTokens() {
         assertThat(tokens("first > second"))
-            .containsExactly(new Literal("first"), new RedirectionOperator(), new Literal("second"));
+            .containsExactly(new Literal("first"), SimpleToken.OUTPUT_REDIRECTION, new Literal("second"));
     }
 
     @Test
     void givenExplicitOutputRedirection_thenTokens() {
         assertThat(tokens("first 1> second"))
-            .containsExactly(new Literal("first"), new RedirectionOperator(), new Literal("second"));
+            .containsExactly(new Literal("first"), SimpleToken.OUTPUT_REDIRECTION, new Literal("second"));
     }
 
     @Test
     void givenSpaceAfterRedirectionOperator_thenTokens() {
         assertThat(tokens("first >second"))
-            .containsExactly(new Literal("first"), new RedirectionOperator(), new Literal("second"));
+            .containsExactly(new Literal("first"), SimpleToken.OUTPUT_REDIRECTION, new Literal("second"));
     }
 
     @Test
@@ -275,7 +275,12 @@ final class TokenIteratorTests {
                 """
             )
         )
-            .containsExactly(new Literal("first"), new LineBreak(), new Literal("second"), new LineBreak());
+            .containsExactly(
+                new Literal("first"),
+                SimpleToken.LINE_BREAK,
+                new Literal("second"),
+                SimpleToken.LINE_BREAK
+            );
     }
 
     @Test
