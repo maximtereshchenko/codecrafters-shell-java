@@ -1,5 +1,6 @@
 package io.codecrafters.shell.iterator.token;
 
+import java.nio.file.Path;
 import java.util.Optional;
 
 final class ReadingSpecialCharacterValue implements State {
@@ -33,6 +34,11 @@ final class ReadingSpecialCharacterValue implements State {
     @Override
     public Transition onRedirectionOperator() {
         return transitionWithEscape('>');
+    }
+
+    @Override
+    public Transition onTilda(Path path) {
+        return transitionWithEscape('~');
     }
 
     @Override

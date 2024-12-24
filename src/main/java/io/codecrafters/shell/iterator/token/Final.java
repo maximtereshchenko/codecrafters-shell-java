@@ -1,5 +1,6 @@
 package io.codecrafters.shell.iterator.token;
 
+import java.nio.file.Path;
 import java.util.Optional;
 
 final class Final implements State {
@@ -26,6 +27,11 @@ final class Final implements State {
 
     @Override
     public Transition onRedirectionOperator() {
+        return onSingleQuote();
+    }
+
+    @Override
+    public Transition onTilda(Path path) {
         return onSingleQuote();
     }
 

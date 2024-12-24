@@ -1,11 +1,16 @@
 package io.codecrafters.shell;
 
-import java.io.PrintStream;
+import io.codecrafters.shell.iterator.expression.Command;
+
 import java.nio.file.Path;
+import java.util.Optional;
 
 interface CommandFactory {
 
-    CommandType type();
+    Optional<CommandType> commandType(String name);
 
-    Command command(Path homeDirectory, Path workingDirectory, PrintStream output);
+    Optional<ExecutableExpression> executableExpression(
+        Path workingDirectory, Command command,
+        ExecutableExpression downstream
+    );
 }

@@ -1,5 +1,6 @@
 package io.codecrafters.shell.iterator.token;
 
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -40,6 +41,11 @@ final class ReadingLiteralCharacterValue implements State {
     @Override
     public Transition onRedirectionOperator() {
         return onCharacter('>');
+    }
+
+    @Override
+    public Transition onTilda(Path path) {
+        return onCharacter('~');
     }
 
     @Override

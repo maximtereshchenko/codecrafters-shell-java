@@ -18,13 +18,13 @@ final class Dsl {
     private final String input;
     private final Path workingDirectory;
     private final Path homeDirectory;
-    private final Set<Path> executableLocations;
+    private final Set<Path> externalCommandLocations;
 
-    private Dsl(String input, Path workingDirectory, Path homeDirectory, Set<Path> executableLocations) {
+    private Dsl(String input, Path workingDirectory, Path homeDirectory, Set<Path> externalCommandLocations) {
         this.input = input;
         this.workingDirectory = workingDirectory;
         this.homeDirectory = homeDirectory;
-        this.executableLocations = executableLocations;
+        this.externalCommandLocations = externalCommandLocations;
     }
 
     Dsl(Path path) {
@@ -32,83 +32,104 @@ final class Dsl {
     }
 
     Dsl givenInput(String input) {
-        return new Dsl(input, workingDirectory, homeDirectory, executableLocations);
+        return new Dsl(input, workingDirectory, homeDirectory, externalCommandLocations);
     }
 
-    EvaluationResult whenEvaluated() {
+    Result whenEvaluated() {
         var output = new ByteArrayOutputStream();
+        var error = new ByteArrayOutputStream();
         try {
             return new Success(
                 Shell.from(
                         new StringReader(input),
                         new PrintStream(output),
+                        new PrintStream(error),
                         homeDirectory,
                         workingDirectory,
-                        executableLocations
+                        externalCommandLocations
                     )
-                    .evaluate(),
-                List.of(output.toString(StandardCharsets.UTF_8).split(System.lineSeparator()))
+                    .evaluationResult(),
+                lines(output),
+                lines(error)
             );
         } catch (Exception e) {
             return new Failure(e);
         }
     }
 
-    Dsl givenExecutableLocation(Path directory) {
-        var copy = new HashSet<>(executableLocations);
+    Dsl givenExternalCommandLocation(Path directory) {
+        var copy = new HashSet<>(externalCommandLocations);
         copy.add(directory);
         return new Dsl(input, workingDirectory, homeDirectory, copy);
     }
 
     Dsl givenWorkingDirectory(Path directory) {
-        return new Dsl(input, directory, homeDirectory, executableLocations);
+        return new Dsl(input, directory, homeDirectory, externalCommandLocations);
     }
 
     Dsl givenHomeDirectory(Path directory) {
-        return new Dsl(input, workingDirectory, directory, executableLocations);
+        return new Dsl(input, workingDirectory, directory, externalCommandLocations);
     }
 
-    interface EvaluationResult {
+    private List<String> lines(ByteArrayOutputStream stream) {
+        return List.of(stream.toString(StandardCharsets.UTF_8).split(System.lineSeparator()));
+    }
 
-        EvaluationResult thenOutputContains(String... expected);
+    interface Result {
 
-        EvaluationResult thenExitCodeIsZero();
+        Result thenOutputContains(String... expected);
+
+        void thenErrorContains(String... expected);
+
+        Result thenFinishedWith(EvaluationResult evaluationResult);
 
         void thenOutputDoesNotContain(String notExpected);
+
+        void thenErrorDoesNotContain(String notExpected);
 
         void thenNoExceptionThrown();
     }
 
-    private static final class Success implements EvaluationResult {
+    private static final class Success implements Result {
 
-        private final int exitCode;
-        private final List<String> lines;
+        private final EvaluationResult evaluationResult;
+        private final List<String> output;
+        private final List<String> error;
 
-        Success(int exitCode, List<String> lines) {
-            this.exitCode = exitCode;
-            this.lines = lines;
+        Success(EvaluationResult evaluationResult, List<String> output, List<String> error) {
+            this.evaluationResult = evaluationResult;
+            this.output = output;
+            this.error = error;
         }
 
         @Override
-        public EvaluationResult thenOutputContains(String... expected) {
-            var soft = new SoftAssertions();
-            for (var element : expected) {
-                soft.assertThat(lines)
-                    .describedAs("At least one line should contain '%s'", element)
-                    .anyMatch(line -> line.contains(element));
-            }
-            soft.assertAll();
+        public Result thenOutputContains(String... expected) {
+            contains(output, expected);
             return this;
         }
 
         @Override
-        public EvaluationResult thenExitCodeIsZero() {
-            assertThat(exitCode).isZero();
+        public void thenErrorContains(String... expected) {
+            contains(error, expected);
+        }
+
+        @Override
+        public Result thenFinishedWith(EvaluationResult evaluationResult) {
+            assertThat(this.evaluationResult).isEqualTo(evaluationResult);
             return this;
         }
 
         @Override
         public void thenOutputDoesNotContain(String notExpected) {
+            doesNotContain(output, notExpected);
+        }
+
+        @Override
+        public void thenErrorDoesNotContain(String notExpected) {
+            doesNotContain(error, notExpected);
+        }
+
+        private void doesNotContain(List<String> lines, String notExpected) {
             assertThat(lines).noneMatch(line -> line.contains(notExpected));
         }
 
@@ -116,9 +137,19 @@ final class Dsl {
         public void thenNoExceptionThrown() {
             //empty
         }
+
+        private void contains(List<String> lines, String... expected) {
+            var soft = new SoftAssertions();
+            for (var element : expected) {
+                soft.assertThat(lines)
+                    .describedAs("At least one line should contain '%s'", element)
+                    .anyMatch(line -> line.contains(element));
+            }
+            soft.assertAll();
+        }
     }
 
-    private static final class Failure implements EvaluationResult {
+    private static final class Failure implements Result {
 
         private final Exception exception;
 
@@ -127,19 +158,28 @@ final class Dsl {
         }
 
         @Override
-        public EvaluationResult thenOutputContains(String... expected) {
+        public Result thenOutputContains(String... expected) {
             thenNoExceptionThrown();
             return this;
         }
 
         @Override
-        public EvaluationResult thenExitCodeIsZero() {
-            thenNoExceptionThrown();
-            return this;
+        public void thenErrorContains(String... expected) {
+            thenOutputContains();
+        }
+
+        @Override
+        public Result thenFinishedWith(EvaluationResult evaluationResult) {
+            return thenOutputContains();
         }
 
         @Override
         public void thenOutputDoesNotContain(String notExpected) {
+            thenNoExceptionThrown();
+        }
+
+        @Override
+        public void thenErrorDoesNotContain(String notExpected) {
             thenNoExceptionThrown();
         }
 

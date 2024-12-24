@@ -27,7 +27,7 @@ final class ShellTests {
     void givenInvalidCommand_thenInvalidCommandMessagePrinted(Dsl dsl) {
         dsl.givenInput("invalid_command")
             .whenEvaluated()
-            .thenOutputContains("invalid_command: command not found");
+            .thenErrorContains("invalid_command: command not found");
     }
 
     @Test
@@ -39,7 +39,7 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenOutputContains(
+            .thenErrorContains(
                 "invalid_command_1: command not found",
                 "invalid_command_2: command not found"
             );
@@ -49,13 +49,13 @@ final class ShellTests {
     void givenExitBuiltIn_thenShellExited(Dsl dsl) {
         dsl.givenInput(
                 """
-                exit 0
+                exit 1
                 should_not_be_evaluated
                 """
             )
             .whenEvaluated()
-            .thenExitCodeIsZero()
-            .thenOutputDoesNotContain("should_not_be_evaluated");
+            .thenFinishedWith(EvaluationResult.FAILURE)
+            .thenErrorDoesNotContain("should_not_be_evaluated");
     }
 
     @Test
@@ -90,14 +90,14 @@ final class ShellTests {
     void givenTypeBuiltIn_thenNotFoundCommandPrinted(Dsl dsl) {
         dsl.givenInput("type invalid_command")
             .whenEvaluated()
-            .thenOutputContains("invalid_command: not found");
+            .thenErrorContains("invalid_command: not found");
     }
 
     @Test
     void givenTypeBuiltIn_thenExecutableCommandPrinted(Dsl dsl, @TempDir Path directory) throws IOException {
         var executable = Files.createFile(directory.resolve("executable"));
         dsl.givenInput("type executable")
-            .givenExecutableLocation(directory)
+            .givenExternalCommandLocation(directory)
             .whenEvaluated()
             .thenOutputContains("executable is " + executable);
     }
@@ -105,7 +105,7 @@ final class ShellTests {
     @Test
     void givenNonexistentExecutableDirectory_thenNoExceptionThrown(Dsl dsl) {
         dsl.givenInput("invalid_command")
-            .givenExecutableLocation(Paths.get("nonexistent"))
+            .givenExternalCommandLocation(Paths.get("nonexistent"))
             .whenEvaluated()
             .thenNoExceptionThrown();
     }
@@ -124,7 +124,7 @@ final class ShellTests {
         );
         Files.writeString(executable, "echo command was executed with $1");
         dsl.givenInput("executable argument")
-            .givenExecutableLocation(directory)
+            .givenExternalCommandLocation(directory)
             .whenEvaluated()
             .thenOutputContains("command was executed with argument");
     }
@@ -141,7 +141,7 @@ final class ShellTests {
     void givenExecutableCommandWithBuiltInName_thenBuiltInPrioritized(Dsl dsl, @TempDir Path directory) throws IOException {
         var pwd = Files.createFile(directory.resolve("pwd"));
         dsl.givenInput("type pwd")
-            .givenExecutableLocation(directory)
+            .givenExternalCommandLocation(directory)
             .whenEvaluated()
             .thenOutputContains("pwd is a shell builtin")
             .thenOutputDoesNotContain("pwd is " + pwd);
@@ -165,7 +165,7 @@ final class ShellTests {
     void givenCdBuiltIn_whenNonexistentPathProvided_thenNoSuchDirectoryPrinted(Dsl dsl) {
         dsl.givenInput("cd /nonexistent")
             .whenEvaluated()
-            .thenOutputContains("cd: /nonexistent: No such file or directory");
+            .thenErrorContains("cd: /nonexistent: No such file or directory");
     }
 
     @Test
@@ -304,7 +304,7 @@ final class ShellTests {
         );
         Files.writeString(executable, "echo command was executed with $1");
         dsl.givenInput("'program with spaces' argument")
-            .givenExecutableLocation(directory)
+            .givenExternalCommandLocation(directory)
             .whenEvaluated()
             .thenOutputContains("command was executed with argument");
     }
@@ -314,7 +314,7 @@ final class ShellTests {
         dsl.givenInput("echo content > file")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
-            .thenExitCodeIsZero();
+            .thenFinishedWith(EvaluationResult.SUCCESS);
         assertThat(directory.resolve("file")).content().isEqualToIgnoringNewLines("content");
     }
 
@@ -323,7 +323,16 @@ final class ShellTests {
         dsl.givenInput("echo content 1> file")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
-            .thenExitCodeIsZero();
+            .thenFinishedWith(EvaluationResult.SUCCESS);
         assertThat(directory.resolve("file")).content().isEqualToIgnoringNewLines("content");
+    }
+
+    @Test
+    void givenExplicitOutputRedirection_thenStandardErrorNotRedirected(Dsl dsl, @TempDir Path directory) {
+        dsl.givenInput("cd /nonexistent > file")
+            .givenWorkingDirectory(directory)
+            .whenEvaluated()
+            .thenErrorContains("cd: /nonexistent: No such file or directory");
+        assertThat(directory.resolve("file")).isEmptyFile();
     }
 }

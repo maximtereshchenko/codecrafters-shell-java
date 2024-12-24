@@ -1,5 +1,6 @@
 package io.codecrafters.shell.iterator.token;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,12 @@ final class ReadingToken implements State {
     @Override
     public Transition onRedirectionOperator() {
         return new Transition(new ReadingWhiteSpaces(), new Found(tokens()));
+    }
+
+    @Override
+    public Transition onTilda(Path path) {
+        builder.append(path.toString());
+        return new Transition(this);
     }
 
     @Override

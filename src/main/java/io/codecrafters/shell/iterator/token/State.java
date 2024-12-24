@@ -1,5 +1,6 @@
 package io.codecrafters.shell.iterator.token;
 
+import java.nio.file.Path;
 import java.util.Optional;
 
 interface State {
@@ -13,6 +14,8 @@ interface State {
     Transition onBackslash();
 
     Transition onRedirectionOperator();
+
+    Transition onTilda(Path path);
 
     Transition onCharacter(char character);
 

@@ -1,5 +1,6 @@
 package io.codecrafters.shell.iterator.token;
 
+import java.nio.file.Path;
 import java.util.Optional;
 
 final class ReadingWhiteSpaces implements State {
@@ -30,6 +31,11 @@ final class ReadingWhiteSpaces implements State {
     @Override
     public Transition onRedirectionOperator() {
         return combined(new Transition(new ReadingWhiteSpaces(), new RedirectionOperator()));
+    }
+
+    @Override
+    public Transition onTilda(Path path) {
+        return combined(new ReadingToken().onTilda(path));
     }
 
     @Override

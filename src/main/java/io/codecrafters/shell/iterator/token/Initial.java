@@ -1,5 +1,6 @@
 package io.codecrafters.shell.iterator.token;
 
+import java.nio.file.Path;
 import java.util.Optional;
 
 final class Initial implements State {
@@ -27,6 +28,11 @@ final class Initial implements State {
     @Override
     public Transition onRedirectionOperator() {
         throw new IllegalStateException();
+    }
+
+    @Override
+    public Transition onTilda(Path path) {
+        return new ReadingToken().onTilda(path);
     }
 
     @Override

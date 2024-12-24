@@ -4,10 +4,14 @@ import io.codecrafters.shell.iterator.CharacterIterator;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 final class TokenIteratorTests {
+
+    private final Path path = Paths.get("").toAbsolutePath();
 
     @Test
     void givenEmptyString_thenNoTokens() {
@@ -280,7 +284,51 @@ final class TokenIteratorTests {
             .containsExactly(new Literal("first"));
     }
 
+    @Test
+    void givenTilda_thenPathLiteral() {
+        assertThat(tokens("~")).containsExactly(new Literal(path.toString()));
+    }
+
+    @Test
+    void givenDoubleQuotedTilda_thenPathLiteral() {
+        assertThat(
+            tokens(
+                """
+                "~"\
+                """
+            )
+        )
+            .containsExactly(new Literal(path.toString()));
+    }
+
+    @Test
+    void givenSingleQuotedTilda_thenTildaLiteral() {
+        assertThat(tokens("'~'")).containsExactly(new Literal("~"));
+    }
+
+    @Test
+    void givenEscapedTilda_thenTildaLiteral() {
+        assertThat(tokens("\\~")).containsExactly(new Literal("~"));
+    }
+
+    @Test
+    void givenSpaceBeforeTilda_thenPathLiteral() {
+        assertThat(tokens("command ~"))
+            .containsExactly(new Literal("command"), new Literal(path.toString()));
+    }
+
+    @Test
+    void givenDoubleQuotedEscapedTilda_thenBackslashTildaLiteral() {
+        assertThat(
+            tokens(
+                """
+                "\\~"\
+                """
+            )
+        ).containsExactly(new Literal("\\~"));
+    }
+
     private Iterable<Token> tokens(String raw) {
-        return () -> new TokenIterator(new CharacterIterator(new StringReader(raw)));
+        return () -> new TokenIterator(path, new CharacterIterator(new StringReader(raw)));
     }
 }

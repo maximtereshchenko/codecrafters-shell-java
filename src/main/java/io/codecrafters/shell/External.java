@@ -2,4 +2,4 @@ package io.codecrafters.shell;
 
 import java.nio.file.Path;
 
-record Executable(Path path) implements CommandType {}
+record External(Path path) implements CommandType {}

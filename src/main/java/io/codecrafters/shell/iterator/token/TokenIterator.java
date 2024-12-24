@@ -2,15 +2,18 @@ package io.codecrafters.shell.iterator.token;
 
 import io.codecrafters.shell.iterator.CachingIterator;
 
+import java.nio.file.Path;
 import java.util.*;
 
 public final class TokenIterator extends CachingIterator<Token> {
 
+    private final Path path;
     private final Iterator<Character> characterIterator;
     private final Queue<Token> queue = new LinkedList<>();
     private State state = new Initial();
 
-    public TokenIterator(Iterator<Character> characterIterator) {
+    public TokenIterator(Path path, Iterator<Character> characterIterator) {
+        this.path = path;
         this.characterIterator = characterIterator;
     }
 
@@ -45,6 +48,7 @@ public final class TokenIterator extends CachingIterator<Token> {
             case '"' -> state.onDoubleQuote();
             case '\\' -> state.onBackslash();
             case '>' -> state.onRedirectionOperator();
+            case '~' -> state.onTilda(path);
             default -> state.onCharacter(next);
         };
     }
