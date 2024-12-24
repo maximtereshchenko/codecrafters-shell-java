@@ -336,7 +336,50 @@ final class TokenIteratorTests {
                 "\\~"\
                 """
             )
-        ).containsExactly(new Literal("\\~"));
+        )
+            .containsExactly(new Literal("\\~"));
+    }
+
+    @Test
+    void givenAppendOperator_thenOutputAppendingToken() {
+        assertThat(tokens("command >> file"))
+            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_APPENDING, new Literal("file"));
+    }
+
+    @Test
+    void givenRedirectionToDoubleQuotedDestination_OutputRedirectionToken() {
+        assertThat(
+            tokens(
+                """
+                command >"file"\
+                """
+            )
+        )
+            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal("file"));
+    }
+
+    @Test
+    void givenRedirectionToSingleQuotedDestination_thenOutputRedirectionToken() {
+        assertThat(tokens("command >'file'"))
+            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal("file"));
+    }
+
+    @Test
+    void givenRedirectionToEscapedDestination_thenOutputRedirectionToken() {
+        assertThat(tokens("command >\\ file"))
+            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal(" file"));
+    }
+
+    @Test
+    void givenRedirectionToTilda_OutputRedirectionToken() {
+        assertThat(tokens("command >~"))
+            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal(path.toString()));
+    }
+
+    @Test
+    void givenRedirectionOnEnd_OutputRedirectionToken() {
+        assertThat(tokens("command >"))
+            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION);
     }
 
     private Iterable<Token> tokens(String raw) {

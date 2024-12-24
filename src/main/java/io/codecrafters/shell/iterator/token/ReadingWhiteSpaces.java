@@ -30,7 +30,7 @@ final class ReadingWhiteSpaces implements State {
 
     @Override
     public Transition onRedirectionOperator() {
-        return combined(new Transition(new ReadingWhiteSpaces(), SimpleToken.OUTPUT_REDIRECTION));
+        return transition(ReadingAppendingOperator.forOutput());
     }
 
     @Override

@@ -1,7 +1,6 @@
 package io.codecrafters.shell.iterator.token;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
 
 final class ReadingToken implements State {
@@ -42,16 +41,11 @@ final class ReadingToken implements State {
 
     @Override
     public Transition onRedirectionOperator() {
-        return new Transition(
-            new ReadingWhiteSpaces(),
-            new Found(
-                switch (builder.toString()) {
-                    case "1" -> List.of(SimpleToken.OUTPUT_REDIRECTION);
-                    case "2" -> List.of(SimpleToken.ERROR_REDIRECTION);
-                    default -> List.of(new Literal(builder), SimpleToken.OUTPUT_REDIRECTION);
-                }
-            )
-        );
+        return switch (builder.toString()) {
+            case "1" -> new Transition(ReadingAppendingOperator.forOutput());
+            case "2" -> new Transition(ReadingAppendingOperator.forError());
+            default -> new Transition(ReadingAppendingOperator.forOutput(), new Literal(builder));
+        };
     }
 
     @Override
