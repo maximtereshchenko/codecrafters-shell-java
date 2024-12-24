@@ -260,6 +260,12 @@ final class TokenIteratorTests {
     }
 
     @Test
+    void givenExplicitErrorRedirection_thenTokens() {
+        assertThat(tokens("first 2> second"))
+            .containsExactly(new Literal("first"), SimpleToken.ERROR_REDIRECTION, new Literal("second"));
+    }
+
+    @Test
     void givenSpaceAfterRedirectionOperator_thenTokens() {
         assertThat(tokens("first >second"))
             .containsExactly(new Literal("first"), SimpleToken.OUTPUT_REDIRECTION, new Literal("second"));
