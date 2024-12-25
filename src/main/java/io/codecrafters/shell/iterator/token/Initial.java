@@ -27,7 +27,7 @@ final class Initial implements State {
 
     @Override
     public Transition onRedirectionOperator() {
-        throw new IllegalStateException();
+        return new Transition(new ReadingAppendingOperator(Redirection.Source.OUTPUT));
     }
 
     @Override

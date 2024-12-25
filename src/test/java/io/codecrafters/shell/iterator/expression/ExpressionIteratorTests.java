@@ -1,7 +1,8 @@
 package io.codecrafters.shell.iterator.expression;
 
+import io.codecrafters.shell.iterator.token.LineBreak;
 import io.codecrafters.shell.iterator.token.Literal;
-import io.codecrafters.shell.iterator.token.SimpleToken;
+import io.codecrafters.shell.iterator.token.Redirection;
 import io.codecrafters.shell.iterator.token.Token;
 import org.junit.jupiter.api.Test;
 
@@ -31,25 +32,51 @@ final class ExpressionIteratorTests {
 
     @Test
     void givenLiteralsWithLineBreak_thenMultipleCommands() {
-        assertThat(expressions(new Literal("first"), SimpleToken.LINE_BREAK, new Literal("second")))
+        assertThat(expressions(new Literal("first"), new LineBreak(), new Literal("second")))
             .containsExactly(new Command("first"), new Command("second"));
     }
 
     @Test
     void givenLineBreaks_thenNoExpressions() {
-        assertThat(expressions(SimpleToken.LINE_BREAK, SimpleToken.LINE_BREAK)).isEmpty();
+        assertThat(expressions(new LineBreak(), new LineBreak())).isEmpty();
     }
 
     @Test
     void givenOutputRedirection_thenOutputRedirection() {
-        assertThat(expressions(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal("file")))
-            .containsExactly(new OutputRedirection(new Command("command"), Paths.get("file")));
+        assertThat(
+            expressions(
+                new Literal("command"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE),
+                new Literal("file")
+            )
+        )
+            .containsExactly(
+                new RedirectionExpression(
+                    new Command("command"),
+                    RedirectionExpression.Source.OUTPUT,
+                    Paths.get("file"),
+                    RedirectionExpression.Mode.OVERWRITE
+                )
+            );
     }
 
     @Test
     void givenErrorRedirection_thenErrorRedirection() {
-        assertThat(expressions(new Literal("command"), SimpleToken.ERROR_REDIRECTION, new Literal("file")))
-            .containsExactly(new ErrorRedirection(new Command("command"), Paths.get("file")));
+        assertThat(
+            expressions(
+                new Literal("command"),
+                new Redirection(Redirection.Source.ERROR, Redirection.Mode.OVERWRITE),
+                new Literal("file")
+            )
+        )
+            .containsExactly(
+                new RedirectionExpression(
+                    new Command("command"),
+                    RedirectionExpression.Source.ERROR,
+                    Paths.get("file"),
+                    RedirectionExpression.Mode.OVERWRITE
+                )
+            );
     }
 
     private Iterable<Expression> expressions(String... literals) {

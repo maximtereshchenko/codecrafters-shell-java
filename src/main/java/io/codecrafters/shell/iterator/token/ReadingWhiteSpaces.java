@@ -30,7 +30,7 @@ final class ReadingWhiteSpaces implements State {
 
     @Override
     public Transition onRedirectionOperator() {
-        return transition(ReadingAppendingOperator.forOutput());
+        return transition(new ReadingAppendingOperator(Redirection.Source.OUTPUT));
     }
 
     @Override
@@ -53,13 +53,7 @@ final class ReadingWhiteSpaces implements State {
     }
 
     private Transition combined(Transition transition) {
-        return new Transition(
-            transition.next(),
-            token()
-                .<Result>map(Found::new)
-                .orElseGet(Continue::new)
-                .combined(transition.result())
-        );
+        return token().map(transition::withPrecedingToken).orElse(transition);
     }
 
     private Optional<Token> token() {
@@ -67,6 +61,6 @@ final class ReadingWhiteSpaces implements State {
             return Optional.empty();
         }
         builder.setLength(0);
-        return Optional.of(SimpleToken.LINE_BREAK);
+        return Optional.of(new LineBreak());
     }
 }

@@ -9,4 +9,8 @@ record Transition(State next, Result result) {
     Transition(State next, Token token) {
         this(next, new Found(token));
     }
+
+    Transition withPrecedingToken(Token token) {
+        return new Transition(next, new Found(token).combined(result));
+    }
 }

@@ -19,6 +19,11 @@ final class TokenIteratorTests {
     }
 
     @Test
+    void givenSpaces_thenNoTokens() {
+        assertThat(tokens("     ")).isEmpty();
+    }
+
+    @Test
     void givenWord_thenLiteralToken() {
         assertThat(tokens("token")).containsExactly(new Literal("token"));
     }
@@ -244,31 +249,51 @@ final class TokenIteratorTests {
     @Test
     void givenRedirectionOperatorNextToToken_thenTokens() {
         assertThat(tokens("first> second"))
-            .containsExactly(new Literal("first"), SimpleToken.OUTPUT_REDIRECTION, new Literal("second"));
+            .containsExactly(
+                new Literal("first"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE),
+                new Literal("second")
+            );
     }
 
     @Test
     void givenSpaceBeforeRedirectionOperator_thenTokens() {
         assertThat(tokens("first > second"))
-            .containsExactly(new Literal("first"), SimpleToken.OUTPUT_REDIRECTION, new Literal("second"));
+            .containsExactly(
+                new Literal("first"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE),
+                new Literal("second")
+            );
     }
 
     @Test
     void givenExplicitOutputRedirection_thenTokens() {
         assertThat(tokens("first 1> second"))
-            .containsExactly(new Literal("first"), SimpleToken.OUTPUT_REDIRECTION, new Literal("second"));
+            .containsExactly(
+                new Literal("first"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE),
+                new Literal("second")
+            );
     }
 
     @Test
     void givenExplicitErrorRedirection_thenTokens() {
         assertThat(tokens("first 2> second"))
-            .containsExactly(new Literal("first"), SimpleToken.ERROR_REDIRECTION, new Literal("second"));
+            .containsExactly(
+                new Literal("first"),
+                new Redirection(Redirection.Source.ERROR, Redirection.Mode.OVERWRITE),
+                new Literal("second")
+            );
     }
 
     @Test
     void givenSpaceAfterRedirectionOperator_thenTokens() {
         assertThat(tokens("first >second"))
-            .containsExactly(new Literal("first"), SimpleToken.OUTPUT_REDIRECTION, new Literal("second"));
+            .containsExactly(
+                new Literal("first"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE),
+                new Literal("second")
+            );
     }
 
     @Test
@@ -283,9 +308,9 @@ final class TokenIteratorTests {
         )
             .containsExactly(
                 new Literal("first"),
-                SimpleToken.LINE_BREAK,
+                new LineBreak(),
                 new Literal("second"),
-                SimpleToken.LINE_BREAK
+                new LineBreak()
             );
     }
 
@@ -343,7 +368,11 @@ final class TokenIteratorTests {
     @Test
     void givenAppendOperator_thenOutputAppendingToken() {
         assertThat(tokens("command >> file"))
-            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_APPENDING, new Literal("file"));
+            .containsExactly(
+                new Literal("command"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.APPEND),
+                new Literal("file")
+            );
     }
 
     @Test
@@ -355,31 +384,56 @@ final class TokenIteratorTests {
                 """
             )
         )
-            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal("file"));
+            .containsExactly(
+                new Literal("command"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE),
+                new Literal("file")
+            );
     }
 
     @Test
     void givenRedirectionToSingleQuotedDestination_thenOutputRedirectionToken() {
         assertThat(tokens("command >'file'"))
-            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal("file"));
+            .containsExactly(
+                new Literal("command"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE),
+                new Literal("file")
+            );
     }
 
     @Test
     void givenRedirectionToEscapedDestination_thenOutputRedirectionToken() {
         assertThat(tokens("command >\\ file"))
-            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal(" file"));
+            .containsExactly(
+                new Literal("command"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE),
+                new Literal(" file")
+            );
     }
 
     @Test
-    void givenRedirectionToTilda_OutputRedirectionToken() {
+    void givenRedirectionToTilda_thenOutputRedirectionToken() {
         assertThat(tokens("command >~"))
-            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION, new Literal(path.toString()));
+            .containsExactly(
+                new Literal("command"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE),
+                new Literal(path.toString())
+            );
     }
 
     @Test
-    void givenRedirectionOnEnd_OutputRedirectionToken() {
+    void givenRedirectionOnEnd_thenOutputRedirectionToken() {
         assertThat(tokens("command >"))
-            .containsExactly(new Literal("command"), SimpleToken.OUTPUT_REDIRECTION);
+            .containsExactly(
+                new Literal("command"),
+                new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE)
+            );
+    }
+
+    @Test
+    void givenRedirection_thenOutputRedirectionToken() {
+        assertThat(tokens(">"))
+            .containsExactly(new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE));
     }
 
     private Iterable<Token> tokens(String raw) {

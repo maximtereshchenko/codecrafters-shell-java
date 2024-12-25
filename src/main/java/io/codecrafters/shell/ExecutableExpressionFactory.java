@@ -1,18 +1,19 @@
 package io.codecrafters.shell;
 
 import io.codecrafters.shell.iterator.expression.Command;
-import io.codecrafters.shell.iterator.expression.ErrorRedirection;
 import io.codecrafters.shell.iterator.expression.Expression;
-import io.codecrafters.shell.iterator.expression.OutputRedirection;
+import io.codecrafters.shell.iterator.expression.RedirectionExpression;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 final class ExecutableExpressionFactory {
 
@@ -39,31 +40,53 @@ final class ExecutableExpressionFactory {
     ) throws IOException {
         return switch (expression) {
             case Command command -> command(workingDirectory, command, downstream);
-            case OutputRedirection(var redirected, var path) -> executableExpression(
+            case RedirectionExpression redirectionExpression -> executableExpression(
                 workingDirectory,
-                redirected,
-                path,
-                printStream -> new OutputRedirectionExpression(printStream, downstream)
-            );
-            case ErrorRedirection(var redirected, var path) -> executableExpression(
-                workingDirectory,
-                redirected,
-                path,
-                printStream -> new ErrorRedirectionExpression(printStream, downstream)
+                redirectionExpression,
+                downstream
             );
         };
     }
 
     private ExecutableExpression executableExpression(
         Path workingDirectory,
-        Expression redirected,
-        Path path,
-        Function<PrintStream, ExecutableExpression> function
+        RedirectionExpression redirectionExpression,
+        ExecutableExpression downstream
     ) throws IOException {
+        var printStream = printStream(
+            workingDirectory,
+            redirectionExpression.path(),
+            options(redirectionExpression.mode())
+        );
         return executableExpression(
             workingDirectory,
-            redirected,
-            function.apply(new PrintStream(Files.newOutputStream(workingDirectory.resolve(path))))
+            redirectionExpression.expression(),
+            switch (redirectionExpression.source()) {
+                case OUTPUT -> new OutputRedirectionExpression(printStream, downstream);
+                case ERROR -> new ErrorRedirectionExpression(printStream, downstream);
+            }
+        );
+    }
+
+    private Set<OpenOption> options(RedirectionExpression.Mode mode) {
+        var options = new HashSet<OpenOption>();
+        options.add(StandardOpenOption.WRITE);
+        options.add(StandardOpenOption.CREATE);
+        options.add(
+            switch (mode) {
+                case OVERWRITE -> StandardOpenOption.TRUNCATE_EXISTING;
+                case APPEND -> StandardOpenOption.APPEND;
+            }
+        );
+        return options;
+    }
+
+    private PrintStream printStream(Path workingDirectory, Path path, Set<OpenOption> options) throws IOException {
+        return new PrintStream(
+            Files.newOutputStream(
+                workingDirectory.resolve(path),
+                options.toArray(OpenOption[]::new)
+            )
         );
     }
 

@@ -1,16 +1,15 @@
 package io.codecrafters.shell.iterator.expression;
 
 import io.codecrafters.shell.iterator.CachingIterator;
+import io.codecrafters.shell.iterator.token.LineBreak;
 import io.codecrafters.shell.iterator.token.Literal;
-import io.codecrafters.shell.iterator.token.SimpleToken;
+import io.codecrafters.shell.iterator.token.Redirection;
 import io.codecrafters.shell.iterator.token.Token;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.function.Function;
 
 public final class ExpressionIterator extends CachingIterator<Expression> {
 
@@ -26,9 +25,9 @@ public final class ExpressionIterator extends CachingIterator<Expression> {
             return Optional.empty();
         }
         return switch (tokenIterator.next()) {
-            case SimpleToken.LINE_BREAK -> nextElement();
+            case LineBreak() -> nextElement();
             case Literal(var value) -> Optional.of(command(value));
-            case SimpleToken.OUTPUT_REDIRECTION, SimpleToken.ERROR_REDIRECTION -> throw new IllegalStateException();
+            case Redirection ignored -> throw new IllegalStateException();
         };
     }
 
@@ -37,28 +36,41 @@ public final class ExpressionIterator extends CachingIterator<Expression> {
         while (tokenIterator.hasNext()) {
             var next = tokenIterator.next();
             switch (next) {
-                case SimpleToken.LINE_BREAK -> {
+                case LineBreak() -> {
                     return new Command(name, arguments);
                 }
                 case Literal(var value) -> arguments.add(value);
-                case SimpleToken.OUTPUT_REDIRECTION -> {
-                    return redirection(path -> new OutputRedirection(new Command(name, arguments), path));
-                }
-                case SimpleToken.ERROR_REDIRECTION -> {
-                    return redirection(path -> new ErrorRedirection(new Command(name, arguments), path));
+                case Redirection(var source, var mode) -> {
+                    return redirection(new Command(name, arguments), source, mode);
                 }
             }
         }
         return new Command(name, arguments);
     }
 
-    private Expression redirection(Function<Path, Expression> function) {
+    private Expression redirection(
+        Expression expression,
+        Redirection.Source source,
+        Redirection.Mode mode
+    ) {
         if (!tokenIterator.hasNext()) {
             throw new IllegalStateException();
         }
         return switch (tokenIterator.next()) {
-            case SimpleToken.LINE_BREAK, SimpleToken.OUTPUT_REDIRECTION, SimpleToken.ERROR_REDIRECTION -> throw new IllegalStateException();
-            case Literal(var value) -> function.apply(Paths.get(value));
+            case LineBreak ignored -> throw new IllegalStateException();
+            case Redirection ignored -> throw new IllegalStateException();
+            case Literal(var value) -> new RedirectionExpression(
+                expression,
+                switch (source) {
+                    case OUTPUT -> RedirectionExpression.Source.OUTPUT;
+                    case ERROR -> RedirectionExpression.Source.ERROR;
+                },
+                Paths.get(value),
+                switch (mode) {
+                    case OVERWRITE -> RedirectionExpression.Mode.OVERWRITE;
+                    case APPEND -> RedirectionExpression.Mode.APPEND;
+                }
+            );
         };
     }
 }

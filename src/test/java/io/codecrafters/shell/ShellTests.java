@@ -354,4 +354,35 @@ final class ShellTests {
             .isEqualToIgnoringNewLines("cd: /nonexistent: No such file or directory");
     }
 
+    @Test
+    void givenAppendOutputRedirection_thenFileContainedAppendedOutput(Dsl dsl, @TempDir Path directory) throws IOException {
+        var file = Files.writeString(directory.resolve("file"), "initial ");
+        dsl.givenInput("echo appended >> file")
+            .givenWorkingDirectory(directory)
+            .whenEvaluated()
+            .thenFinishedWith(EvaluationResult.SUCCESS);
+        assertThat(file).content().isEqualToIgnoringNewLines("initial appended");
+    }
+
+    @Test
+    void givenExplicitAppendOutputRedirection_thenFileContainedAppendedOutput(Dsl dsl, @TempDir Path directory) throws IOException {
+        var file = Files.writeString(directory.resolve("file"), "initial ");
+        dsl.givenInput("echo appended 1>> file")
+            .givenWorkingDirectory(directory)
+            .whenEvaluated()
+            .thenFinishedWith(EvaluationResult.SUCCESS);
+        assertThat(file).content().isEqualToIgnoringNewLines("initial appended");
+    }
+
+    @Test
+    void givenAppendErrorRedirection_thenFileContainedAppendedOutput(Dsl dsl, @TempDir Path directory) throws IOException {
+        var file = Files.writeString(directory.resolve("file"), "initial ");
+        dsl.givenInput("cd /nonexistent 2>> file")
+            .givenWorkingDirectory(directory)
+            .whenEvaluated()
+            .thenFinishedWith(EvaluationResult.SUCCESS);
+        assertThat(file)
+            .content()
+            .isEqualToIgnoringNewLines("initial cd: /nonexistent: No such file or directory");
+    }
 }

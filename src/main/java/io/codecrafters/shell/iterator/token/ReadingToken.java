@@ -17,11 +17,9 @@ final class ReadingToken implements State {
 
     @Override
     public Transition onWhitespace(char whitespace) {
-        var transition = new ReadingWhiteSpaces().onWhitespace(whitespace);
-        return new Transition(
-            transition.next(),
-            new Found(new Literal(builder)).combined(transition.result())
-        );
+        return new ReadingWhiteSpaces()
+            .onWhitespace(whitespace)
+            .withPrecedingToken(new Literal(builder));
     }
 
     @Override
@@ -42,9 +40,9 @@ final class ReadingToken implements State {
     @Override
     public Transition onRedirectionOperator() {
         return switch (builder.toString()) {
-            case "1" -> new Transition(ReadingAppendingOperator.forOutput());
-            case "2" -> new Transition(ReadingAppendingOperator.forError());
-            default -> new Transition(ReadingAppendingOperator.forOutput(), new Literal(builder));
+            case "1" -> new Transition(new ReadingAppendingOperator(Redirection.Source.OUTPUT));
+            case "2" -> new Transition(new ReadingAppendingOperator(Redirection.Source.ERROR));
+            default -> new Transition(new ReadingAppendingOperator(Redirection.Source.OUTPUT), new Literal(builder));
         };
     }
 

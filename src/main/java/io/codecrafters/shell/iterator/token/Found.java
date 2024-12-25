@@ -9,8 +9,7 @@ record Found(List<Token> tokens) implements Result {
         this(List.of(token));
     }
 
-    @Override
-    public Result combined(Result result) {
+    Result combined(Result result) {
         return switch (result) {
             case Continue ignored -> this;
             case Found(var foundTokens) -> {
