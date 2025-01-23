@@ -8,4 +8,6 @@
 
 set -e # Exit on failure
 
+stty -icanon -echo
 exec java -jar /tmp/codecrafters-build-shell-java/codecrafters-shell.jar "$@"
+stty sane
