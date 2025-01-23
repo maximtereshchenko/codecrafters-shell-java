@@ -20,14 +20,14 @@ final class ShellTests {
     @Test
     void givenNoInput_thenPromptPrinted(Dsl dsl) {
         dsl.whenEvaluated()
-            .thenOutputContains("$ ");
+            .thenOutputContainsLines("$ ");
     }
 
     @Test
     void givenInvalidCommand_thenInvalidCommandMessagePrinted(Dsl dsl) {
         dsl.givenInput("invalid_command")
             .whenEvaluated()
-            .thenErrorContains("invalid_command: command not found");
+            .thenErrorContainsLines("invalid_command: command not found");
     }
 
     @Test
@@ -39,7 +39,7 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenErrorContains(
+            .thenErrorContainsLines(
                 "invalid_command_1: command not found",
                 "invalid_command_2: command not found"
             );
@@ -60,44 +60,44 @@ final class ShellTests {
 
     @Test
     void givenCommand_thenPromptPrintedTwice(Dsl dsl) {
-        dsl.givenInput("echo" + System.lineSeparator())
+        dsl.givenInput("echo")
             .whenEvaluated()
-            .thenOutputContains("$ ", "$ ");
+            .thenOutputContainsLines("$ echo", "$ ");
     }
 
     @Test
     void givenEchoBuiltIn_thenArgumentsPrinted(Dsl dsl) {
         dsl.givenInput("echo first second")
             .whenEvaluated()
-            .thenOutputContains("first second");
+            .thenOutputContainsLines("first second");
     }
 
     @Test
     void givenEchoBuiltIn_thenEchoNotPrinted(Dsl dsl) {
         dsl.givenInput("echo first second")
             .whenEvaluated()
-            .thenOutputDoesNotContain("echo");
+            .thenOutputDoesNotContainLine("echo");
     }
 
     @Test
     void givenTypeBuiltIn_thenExistingBuiltInTypePrinted(Dsl dsl) {
         dsl.givenInput("type exit")
             .whenEvaluated()
-            .thenOutputContains("exit is a shell builtin");
+            .thenOutputContainsLines("exit is a shell builtin");
     }
 
     @Test
     void givenTypeBuiltIn_thenItsTypePrinted(Dsl dsl) {
         dsl.givenInput("type type")
             .whenEvaluated()
-            .thenOutputContains("type is a shell builtin");
+            .thenOutputContainsLines("type is a shell builtin");
     }
 
     @Test
     void givenTypeBuiltIn_thenNotFoundCommandPrinted(Dsl dsl) {
         dsl.givenInput("type invalid_command")
             .whenEvaluated()
-            .thenErrorContains("invalid_command: not found");
+            .thenErrorContainsLines("invalid_command: not found");
     }
 
     @Test
@@ -106,7 +106,7 @@ final class ShellTests {
         dsl.givenInput("type executable")
             .givenExternalCommandLocation(directory)
             .whenEvaluated()
-            .thenOutputContains("executable is " + executable);
+            .thenOutputContainsLines("executable is " + executable);
     }
 
     @Test
@@ -133,7 +133,7 @@ final class ShellTests {
         dsl.givenInput("executable argument")
             .givenExternalCommandLocation(directory)
             .whenEvaluated()
-            .thenOutputContains("command was executed with argument");
+            .thenOutputContainsLines("command was executed with argument");
     }
 
     @Test
@@ -141,7 +141,7 @@ final class ShellTests {
         dsl.givenInput("pwd")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
-            .thenOutputContains(directory.toString());
+            .thenOutputContainsLines(directory.toString());
     }
 
     @Test
@@ -150,8 +150,8 @@ final class ShellTests {
         dsl.givenInput("type pwd")
             .givenExternalCommandLocation(directory)
             .whenEvaluated()
-            .thenOutputContains("pwd is a shell builtin")
-            .thenOutputDoesNotContain("pwd is " + pwd);
+            .thenOutputContainsLines("pwd is a shell builtin")
+            .thenOutputDoesNotContainLine("pwd is " + pwd);
     }
 
     @Test
@@ -165,14 +165,14 @@ final class ShellTests {
                     .formatted(nested.toString())
             )
             .whenEvaluated()
-            .thenOutputContains(nested.toString());
+            .thenOutputContainsLines(nested.toString());
     }
 
     @Test
     void givenCdBuiltIn_whenNonexistentPathProvided_thenNoSuchDirectoryPrinted(Dsl dsl) {
         dsl.givenInput("cd /nonexistent")
             .whenEvaluated()
-            .thenErrorContains("cd: /nonexistent: No such file or directory");
+            .thenErrorContainsLines("cd: /nonexistent: No such file or directory");
     }
 
     @Test
@@ -186,7 +186,7 @@ final class ShellTests {
             )
             .givenWorkingDirectory(directory)
             .whenEvaluated()
-            .thenOutputContains(nested.toString());
+            .thenOutputContainsLines(nested.toString());
     }
 
     @Test
@@ -199,21 +199,21 @@ final class ShellTests {
             )
             .givenHomeDirectory(directory)
             .whenEvaluated()
-            .thenOutputContains(directory.toString());
+            .thenOutputContainsLines(directory.toString());
     }
 
     @Test
     void givenSingleQuotes_thenArgumentContainedSpaces(Dsl dsl) {
         dsl.givenInput("echo 'first   second'")
             .whenEvaluated()
-            .thenOutputContains("first   second");
+            .thenOutputContainsLines("first   second");
     }
 
     @Test
     void givenMultipleSpacesBetweenArguments_thenArgumentsWithoutSpacesPrinted(Dsl dsl) {
         dsl.givenInput("echo first   second")
             .whenEvaluated()
-            .thenOutputContains("first second");
+            .thenOutputContainsLines("first second");
     }
 
     @Test
@@ -224,7 +224,7 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenOutputContains("first   second");
+            .thenOutputContainsLines("first   second");
     }
 
     @Test
@@ -236,14 +236,14 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenOutputContains("quoted", "normal");
+            .thenOutputContainsLines("quoted", "normal");
     }
 
     @Test
     void givenEscapeCharacter_thenNextCharacterLiteralValuePreserved(Dsl dsl) {
         dsl.givenInput("echo first\\ \\ \\ second")
             .whenEvaluated()
-            .thenOutputContains("first   second");
+            .thenOutputContainsLines("first   second");
     }
 
     @Test
@@ -254,7 +254,7 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenOutputContains("first\\second");
+            .thenOutputContainsLines("first\\second");
     }
 
     @Test
@@ -265,7 +265,7 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenOutputContains("\\");
+            .thenOutputContainsLines("\\");
     }
 
     @Test
@@ -276,14 +276,14 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenOutputContains("firstsecond");
+            .thenOutputContainsLines("firstsecond");
     }
 
     @Test
     void givenSingleQuotedWords_thenSingleArgumentPrinted(Dsl dsl) {
         dsl.givenInput("echo 'first''second'")
             .whenEvaluated()
-            .thenOutputContains("firstsecond");
+            .thenOutputContainsLines("firstsecond");
     }
 
     @Test
@@ -294,7 +294,7 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenOutputContains("\\n");
+            .thenOutputContainsLines("\\n");
     }
 
     @Test
@@ -313,7 +313,7 @@ final class ShellTests {
         dsl.givenInput("'program with spaces' argument")
             .givenExternalCommandLocation(directory)
             .whenEvaluated()
-            .thenOutputContains("command was executed with argument");
+            .thenOutputContainsLines("command was executed with argument");
     }
 
     @Test
@@ -339,7 +339,7 @@ final class ShellTests {
         dsl.givenInput("cd /nonexistent > file")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
-            .thenErrorContains("cd: /nonexistent: No such file or directory");
+            .thenErrorContainsLines("cd: /nonexistent: No such file or directory");
         assertThat(directory.resolve("file")).isEmptyFile();
     }
 
@@ -384,5 +384,12 @@ final class ShellTests {
         assertThat(file)
             .content()
             .isEqualToIgnoringNewLines("initial cd: /nonexistent: No such file or directory");
+    }
+
+    @Test
+    void givenInput_thenInputEchoed(Dsl dsl) {
+        dsl.givenInput("echo token")
+            .whenEvaluated()
+            .thenOutputContainsLines("$ echo token", "token");
     }
 }

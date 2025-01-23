@@ -31,7 +31,7 @@ final class Dsl {
     }
 
     Dsl givenInput(String input) {
-        return new Dsl(input, workingDirectory, homeDirectory, externalCommandLocations);
+        return new Dsl(withLineSeparator(input), workingDirectory, homeDirectory, externalCommandLocations);
     }
 
     Result whenEvaluated() {
@@ -70,19 +70,26 @@ final class Dsl {
         return new Dsl(input, workingDirectory, directory, externalCommandLocations);
     }
 
+    private String withLineSeparator(String input) {
+        if (input.endsWith(System.lineSeparator())) {
+            return input;
+        }
+        return input + System.lineSeparator();
+    }
+
     private List<String> lines(ByteArrayOutputStream stream) {
         return List.of(stream.toString(StandardCharsets.UTF_8).split(System.lineSeparator()));
     }
 
     interface Result {
 
-        Result thenOutputContains(String... expected);
+        Result thenOutputContainsLines(String... expected);
 
-        void thenErrorContains(String... expected);
+        void thenErrorContainsLines(String... expected);
 
         Result thenFinishedWith(EvaluationResult evaluationResult);
 
-        void thenOutputDoesNotContain(String notExpected);
+        void thenOutputDoesNotContainLine(String notExpected);
 
         void thenErrorDoesNotContain(String notExpected);
 
@@ -102,14 +109,14 @@ final class Dsl {
         }
 
         @Override
-        public Result thenOutputContains(String... expected) {
-            contains(output, expected);
+        public Result thenOutputContainsLines(String... expected) {
+            containsLines(output, expected);
             return this;
         }
 
         @Override
-        public void thenErrorContains(String... expected) {
-            contains(error, expected);
+        public void thenErrorContainsLines(String... expected) {
+            containsLines(error, expected);
         }
 
         @Override
@@ -119,13 +126,13 @@ final class Dsl {
         }
 
         @Override
-        public void thenOutputDoesNotContain(String notExpected) {
-            doesNotContain(output, notExpected);
+        public void thenOutputDoesNotContainLine(String notExpected) {
+            doesNotContainLine(output, notExpected);
         }
 
         @Override
         public void thenErrorDoesNotContain(String notExpected) {
-            doesNotContain(error, notExpected);
+            doesNotContainLine(error, notExpected);
         }
 
         @Override
@@ -133,29 +140,24 @@ final class Dsl {
             //empty
         }
 
-        private void doesNotContain(List<String> lines, String notExpected) {
-            assertThat(lines).noneMatch(line -> line.contains(notExpected));
+        private void doesNotContainLine(List<String> lines, String notExpected) {
+            assertThat(lines).noneMatch(line -> line.equals(notExpected));
         }
 
-        private void contains(List<String> lines, String... expected) {
-            var remainingElements = new ArrayList<>(List.of(expected));
-            var remainingLines = new ArrayList<>(lines);
-            var remainingElementsIterator = remainingElements.listIterator();
-            while (remainingElementsIterator.hasNext()) {
-                var element = remainingElementsIterator.next();
-                var remainingLinesIterator = remainingLines.listIterator();
-                while (remainingLinesIterator.hasNext()) {
-                    var line = remainingLinesIterator.next();
-                    if (line.contains(element)) {
-                        remainingLinesIterator.remove();
-                        remainingElementsIterator.remove();
-                        break;
-                    }
+        private void containsLines(List<String> actual, String... expectedLines) {
+            var remainingActual = new ArrayList<>(actual);
+            var unmatchedExpected = new ArrayList<String>();
+            for (var expected : expectedLines) {
+                var index = remainingActual.indexOf(expected);
+                if (index == -1) {
+                    unmatchedExpected.add(expected);
+                } else {
+                    remainingActual.remove(index);
                 }
             }
-            assertThat(remainingElements)
-                .describedAs("%s should contain all %s", lines, List.of(expected))
-                .overridingErrorMessage("but missing %s", remainingElements)
+            assertThat(unmatchedExpected)
+                .describedAs("%s should contain all %s", actual, List.of(expectedLines))
+                .overridingErrorMessage("but missing %s", unmatchedExpected)
                 .isEmpty();
         }
     }
@@ -169,23 +171,23 @@ final class Dsl {
         }
 
         @Override
-        public Result thenOutputContains(String... expected) {
+        public Result thenOutputContainsLines(String... expected) {
             thenNoExceptionThrown();
             return this;
         }
 
         @Override
-        public void thenErrorContains(String... expected) {
-            thenOutputContains();
+        public void thenErrorContainsLines(String... expected) {
+            thenOutputContainsLines();
         }
 
         @Override
         public Result thenFinishedWith(EvaluationResult evaluationResult) {
-            return thenOutputContains();
+            return thenOutputContainsLines();
         }
 
         @Override
-        public void thenOutputDoesNotContain(String notExpected) {
+        public void thenOutputDoesNotContainLine(String notExpected) {
             thenNoExceptionThrown();
         }
 
