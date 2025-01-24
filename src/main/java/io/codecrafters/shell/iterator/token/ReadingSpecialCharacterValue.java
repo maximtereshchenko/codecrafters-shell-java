@@ -48,7 +48,7 @@ final class ReadingSpecialCharacterValue implements State {
 
     @Override
     public Optional<Token> onEnd() {
-        throw new IllegalStateException();
+        throw new CouldNotReadToken(builder, '"');
     }
 
     private Transition transitionWithEscape(char character) {

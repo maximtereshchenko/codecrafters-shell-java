@@ -156,7 +156,7 @@ final class Dsl {
                 }
             }
             assertThat(unmatchedExpected)
-                .overridingErrorMessage("%s should contain all %s, but missing %s", actual, List.of(expectedLines), unmatchedExpected)
+                .overridingErrorMessage("%s should contain all %s, but is missing %s", actual, List.of(expectedLines), unmatchedExpected)
                 .isEmpty();
         }
     }

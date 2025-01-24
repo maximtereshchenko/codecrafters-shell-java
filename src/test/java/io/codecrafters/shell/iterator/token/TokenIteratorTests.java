@@ -2,12 +2,15 @@ package io.codecrafters.shell.iterator.token;
 
 import io.codecrafters.shell.iterator.CharacterIterator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 final class TokenIteratorTests {
 
@@ -436,7 +439,32 @@ final class TokenIteratorTests {
             .containsExactly(new Redirection(Redirection.Source.OUTPUT, Redirection.Mode.OVERWRITE));
     }
 
+    @Test
+    void givenEscapeSymbolOnEnd_thenEmptyToken() {
+        assertThat(tokens("command \\")).containsExactly(new Literal("command"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"\"command", "'command", "\"command\\"})
+    void givenUnquotedToken_thenCouldNotReadTokenThrown(String input) {
+        var tokenIterator = tokenIterator(input);
+        assertThatThrownBy(() -> iterateOver(tokenIterator))
+            .isInstanceOf(CouldNotReadToken.class)
+            .hasMessageContaining("command")
+            .hasMessageEndingWith(input.substring(0, 1));
+    }
+
     private Iterable<Token> tokens(String raw) {
-        return () -> new TokenIterator(path, new CharacterIterator(new StringReader(raw)));
+        return () -> tokenIterator(raw);
+    }
+
+    private TokenIterator tokenIterator(String raw) {
+        return new TokenIterator(path, new CharacterIterator(new StringReader(raw)));
+    }
+
+    private void iterateOver(TokenIterator tokenIterator) {
+        while (tokenIterator.hasNext()) {
+            tokenIterator.next();
+        }
     }
 }

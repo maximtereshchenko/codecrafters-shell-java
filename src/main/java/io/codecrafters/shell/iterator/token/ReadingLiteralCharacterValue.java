@@ -56,6 +56,6 @@ final class ReadingLiteralCharacterValue implements State {
 
     @Override
     public Optional<Token> onEnd() {
-        throw new IllegalStateException();
+        return Optional.empty();
     }
 }
