@@ -395,9 +395,9 @@ final class ShellTests {
                     ex, exit
                     """
     )
-    void givenPartialInputWithTab_thenInputAutocompleted(String partial, String expected, Dsl dsl) {
+    void givenPartialInputWithTab_thenInputAutocompleted(String partial, String full, Dsl dsl) {
         dsl.givenInput(partial + "\t")
             .whenEvaluated()
-            .thenOutputContainsLines("$ " + expected);
+            .thenOutputContainsLines("$ %s ".formatted(full));
     }
 }

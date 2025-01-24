@@ -19,6 +19,7 @@ final class Autocomplete {
             .map(CommandType::name)
             .filter(name -> name.startsWith(input))
             .map(name -> name.substring(input.length()))
+            .map(completed -> completed + " ")
             .findAny();
     }
 }
