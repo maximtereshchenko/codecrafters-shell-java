@@ -3,6 +3,8 @@ package io.codecrafters.shell;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -102,7 +104,10 @@ final class ShellTests {
 
     @Test
     void givenTypeBuiltIn_thenExecutableCommandPrinted(Dsl dsl, @TempDir Path directory) throws IOException {
-        var executable = Files.createFile(directory.resolve("executable"));
+        var executable = Files.createFile(
+            directory.resolve("executable"),
+            PosixFilePermissions.asFileAttribute(Set.of(PosixFilePermission.OWNER_EXECUTE))
+        );
         dsl.givenInput("type executable")
             .givenExternalCommandLocation(directory)
             .whenEvaluated()
@@ -391,5 +396,18 @@ final class ShellTests {
         dsl.givenInput("echo token")
             .whenEvaluated()
             .thenOutputContainsLines("$ echo token", "token");
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        textBlock = """
+                    ec, echo
+                    ex, exit
+                    """
+    )
+    void givenPartialInputWithTab_thenInputAutocompleted(String partial, String expected, Dsl dsl) {
+        dsl.givenInput(partial + "\t")
+            .whenEvaluated()
+            .thenOutputContainsLines("$ " + expected);
     }
 }

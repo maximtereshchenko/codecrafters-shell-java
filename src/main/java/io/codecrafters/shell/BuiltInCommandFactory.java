@@ -3,10 +3,8 @@ package io.codecrafters.shell;
 import io.codecrafters.shell.iterator.expression.Command;
 
 import java.nio.file.Path;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 final class BuiltInCommandFactory implements CommandFactory {
 
@@ -44,11 +42,11 @@ final class BuiltInCommandFactory implements CommandFactory {
     }
 
     @Override
-    public Optional<CommandType> commandType(String name) {
-        if (!constructors.containsKey(name)) {
-            return Optional.empty();
-        }
-        return Optional.of(new BuiltIn(name));
+    public Set<CommandType> commandTypes() {
+        return constructors.keySet()
+            .stream()
+            .map(BuiltIn::new)
+            .collect(Collectors.toSet());
     }
 
     @Override

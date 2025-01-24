@@ -1,0 +1,24 @@
+package io.codecrafters.shell;
+
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
+
+final class Autocomplete {
+
+    private final Set<CommandFactory> commandFactories;
+
+    Autocomplete(Set<CommandFactory> commandFactories) {
+        this.commandFactories = commandFactories;
+    }
+
+    Optional<String> complete(String input) {
+        return commandFactories.stream()
+            .map(CommandFactory::commandTypes)
+            .flatMap(Collection::stream)
+            .map(CommandType::name)
+            .filter(name -> name.startsWith(input))
+            .map(name -> name.substring(input.length()))
+            .findAny();
+    }
+}

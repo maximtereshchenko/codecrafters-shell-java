@@ -1,7 +1,7 @@
 package io.codecrafters.shell;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.Optional;
 
 final class TypeBuiltIn implements ExecutableExpression {
 
@@ -28,10 +28,11 @@ final class TypeBuiltIn implements ExecutableExpression {
     @Override
     public ExecutionResult onEnd() {
         commandFactories.stream()
-            .map(factory -> factory.commandType(name))
-            .flatMap(Optional::stream)
-            .findAny()
+            .map(CommandFactory::commandTypes)
+            .flatMap(Collection::stream)
+            .filter(commandType -> commandType.name().equals(name))
             .map(this::description)
+            .findAny()
             .ifPresentOrElse(
                 downstream::onNext,
                 () -> downstream.onError(name + ": not found")

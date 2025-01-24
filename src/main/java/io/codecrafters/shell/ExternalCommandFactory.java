@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 final class ExternalCommandFactory implements CommandFactory {
 
@@ -18,9 +19,10 @@ final class ExternalCommandFactory implements CommandFactory {
     }
 
     @Override
-    public Optional<CommandType> commandType(String name) {
-        return path(name)
-            .map(External::new);
+    public Set<CommandType> commandTypes() {
+        return executableFiles()
+            .map(External::new)
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -30,11 +32,16 @@ final class ExternalCommandFactory implements CommandFactory {
             .map(fullCommand -> externalCommand(fullCommand, downstream));
     }
 
-    private Optional<Path> path(String name) {
+    private Stream<Path> executableFiles() {
         return externalCommandLocations.stream()
             .filter(Files::exists)
             .map(this::files)
             .flatMap(Collection::stream)
+            .filter(Files::isExecutable);
+    }
+
+    private Optional<Path> path(String name) {
+        return executableFiles()
             .filter(path -> path.getFileName().toString().equals(name))
             .findAny();
     }

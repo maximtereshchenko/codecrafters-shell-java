@@ -11,7 +11,6 @@ import java.io.Reader;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.Optional;
 import java.util.Set;
 
 final class Shell {
@@ -44,6 +43,7 @@ final class Shell {
         var commandFactories = new LinkedHashSet<CommandFactory>();
         commandFactories.add(BuiltInCommandFactory.from(commandFactories));
         commandFactories.add(new ExternalCommandFactory(externalCommandLocations));
+        var autocomplete = new Autocomplete(commandFactories);
         return new Shell(
             new ExpressionIterator(
                 new TokenIterator(
@@ -52,7 +52,7 @@ final class Shell {
                         new CharacterIterator(reader),
                         output,
                         homeDirectory,
-                        input -> Optional.empty()
+                        autocomplete::complete
                     )
                 )
             ),

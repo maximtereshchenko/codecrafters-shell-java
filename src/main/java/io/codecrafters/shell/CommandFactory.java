@@ -4,10 +4,11 @@ import io.codecrafters.shell.iterator.expression.Command;
 
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 
 interface CommandFactory {
 
-    Optional<CommandType> commandType(String name);
+    Set<CommandType> commandTypes();
 
     Optional<ExecutableExpression> executableExpression(
         Path workingDirectory, Command command,
