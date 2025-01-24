@@ -359,36 +359,26 @@ final class ShellTests {
             .isEqualToIgnoringNewLines("cd: /nonexistent: No such file or directory");
     }
 
-    @Test
-    void givenAppendOutputRedirection_thenFileContainedAppendedOutput(Dsl dsl, @TempDir Path directory) throws IOException {
+    @ParameterizedTest
+    @CsvSource(
+        textBlock = """
+                    echo appended >> file, initial appended
+                    echo appended 1>> file, initial appended
+                    cd /nonexistent 2>> file, initial cd: /nonexistent: No such file or directory
+                    """
+    )
+    void givenAppendOutputRedirection_thenFileContainedAppendedOutput(
+        String input,
+        String content,
+        Dsl dsl,
+        @TempDir Path directory
+    ) throws IOException {
         var file = Files.writeString(directory.resolve("file"), "initial ");
-        dsl.givenInput("echo appended >> file")
+        dsl.givenInput(input)
             .givenWorkingDirectory(directory)
             .whenEvaluated()
             .thenFinishedWith(EvaluationResult.SUCCESS);
-        assertThat(file).content().isEqualToIgnoringNewLines("initial appended");
-    }
-
-    @Test
-    void givenExplicitAppendOutputRedirection_thenFileContainedAppendedOutput(Dsl dsl, @TempDir Path directory) throws IOException {
-        var file = Files.writeString(directory.resolve("file"), "initial ");
-        dsl.givenInput("echo appended 1>> file")
-            .givenWorkingDirectory(directory)
-            .whenEvaluated()
-            .thenFinishedWith(EvaluationResult.SUCCESS);
-        assertThat(file).content().isEqualToIgnoringNewLines("initial appended");
-    }
-
-    @Test
-    void givenAppendErrorRedirection_thenFileContainedAppendedOutput(Dsl dsl, @TempDir Path directory) throws IOException {
-        var file = Files.writeString(directory.resolve("file"), "initial ");
-        dsl.givenInput("cd /nonexistent 2>> file")
-            .givenWorkingDirectory(directory)
-            .whenEvaluated()
-            .thenFinishedWith(EvaluationResult.SUCCESS);
-        assertThat(file)
-            .content()
-            .isEqualToIgnoringNewLines("initial cd: /nonexistent: No such file or directory");
+        assertThat(file).content().isEqualToIgnoringNewLines(content);
     }
 
     @Test
