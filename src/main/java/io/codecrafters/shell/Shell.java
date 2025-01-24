@@ -1,7 +1,7 @@
 package io.codecrafters.shell;
 
 import io.codecrafters.shell.iterator.CharacterIterator;
-import io.codecrafters.shell.iterator.EchoingIterator;
+import io.codecrafters.shell.iterator.InputBufferingIterator;
 import io.codecrafters.shell.iterator.expression.Expression;
 import io.codecrafters.shell.iterator.expression.ExpressionIterator;
 import io.codecrafters.shell.iterator.token.TokenIterator;
@@ -44,7 +44,7 @@ final class Shell {
         commandFactories.add(BuiltInCommandFactory.from(commandFactories));
         commandFactories.add(new ExternalCommandFactory(externalCommandLocations));
         return new Shell(
-            new ExpressionIterator(new TokenIterator(homeDirectory, new EchoingIterator(new CharacterIterator(reader), output))),
+            new ExpressionIterator(new TokenIterator(homeDirectory, new InputBufferingIterator(new CharacterIterator(reader), output))),
             workingDirectory,
             new ExecutableExpressionFactory(commandFactories, new Sink(output, error)),
             output
