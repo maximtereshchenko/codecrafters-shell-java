@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 
 final class Shell {
@@ -44,7 +45,17 @@ final class Shell {
         commandFactories.add(BuiltInCommandFactory.from(commandFactories));
         commandFactories.add(new ExternalCommandFactory(externalCommandLocations));
         return new Shell(
-            new ExpressionIterator(new TokenIterator(homeDirectory, new InputBufferingIterator(new CharacterIterator(reader), output))),
+            new ExpressionIterator(
+                new TokenIterator(
+                    homeDirectory,
+                    new InputBufferingIterator(
+                        new CharacterIterator(reader),
+                        output,
+                        homeDirectory,
+                        input -> Optional.empty()
+                    )
+                )
+            ),
             workingDirectory,
             new ExecutableExpressionFactory(commandFactories, new Sink(output, error)),
             output
