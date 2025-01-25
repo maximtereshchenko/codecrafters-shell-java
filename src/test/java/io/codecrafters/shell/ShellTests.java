@@ -395,7 +395,7 @@ final class ShellTests {
                     ex, exit
                     """
     )
-    void givenPartialInputWithTab_thenInputAutocompleted(String partial, String full, Dsl dsl) {
+    void givenPartialBuiltInWithTab_thenBuiltInAutocompleted(String partial, String full, Dsl dsl) {
         dsl.givenInput(partial + "\t")
             .whenEvaluated()
             .thenOutputContainsLines("$ %s ".formatted(full));
@@ -406,5 +406,17 @@ final class ShellTests {
         dsl.givenInput("wrong\t")
             .whenEvaluated()
             .thenErrorDoesNotContain("wrong\u0007: command not found");
+    }
+
+    @Test
+    void givenPartialExternalCommandWithTab_thenExternalCommandAutocompleted(Dsl dsl, @TempDir Path directory) throws IOException {
+        Files.createFile(
+            directory.resolve("executable"),
+            PosixFilePermissions.asFileAttribute(Set.of(PosixFilePermission.OWNER_EXECUTE))
+        );
+        dsl.givenInput("exec\t")
+            .givenExternalCommandLocation(directory)
+            .whenEvaluated()
+            .thenOutputContainsLines("$ executable ");
     }
 }
