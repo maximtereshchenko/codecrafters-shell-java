@@ -50,7 +50,11 @@ final class BuiltInCommandFactory implements CommandFactory {
     }
 
     @Override
-    public Optional<ExecutableExpression> executableExpression(Path workingDirectory, Command command, ExecutableExpression downstream) {
+    public Optional<ExecutableExpression> executableExpression(
+        Path workingDirectory,
+        Command command,
+        ExecutableExpression downstream
+    ) {
         return Optional.ofNullable(constructors.get(command.name()))
             .map(constructor ->
                 constructor.executableExpression(workingDirectory, command.arguments(), downstream)

@@ -4,6 +4,7 @@ import io.codecrafters.shell.iterator.expression.Command;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -28,8 +29,7 @@ final class ExternalCommandFactory implements CommandFactory {
     @Override
     public Optional<ExecutableExpression> executableExpression(Path workingDirectory, Command command, ExecutableExpression downstream) {
         return path(command.name())
-            .map(path -> fullCommand(path, command.arguments()))
-            .map(fullCommand -> externalCommand(fullCommand, downstream));
+            .map(path -> externalCommand(path, command.arguments(), downstream));
     }
 
     private Stream<Path> executableFiles() {
@@ -59,23 +59,38 @@ final class ExternalCommandFactory implements CommandFactory {
         }
     }
 
-    private ExternalCommand externalCommand(List<String> command, ExecutableExpression downstream) {
+    private ExternalCommand externalCommand(Path path, List<String> arguments, ExecutableExpression downstream) {
         try {
-            return new ExternalCommand(
-                new ProcessBuilder()
-                    .command(command)
-                    .start(),
-                downstream
-            );
+            return new ExternalCommand(process(processCommand(path, arguments)), downstream);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private List<String> fullCommand(Path path, List<String> arguments) {
-        var command = new ArrayList<String>();
-        command.add(path.toString());
-        command.addAll(arguments);
-        return command;
+    private List<String> processCommand(Path path, List<String> arguments) throws IOException {
+        var processCommand = new ArrayList<>(arguments);
+        processCommand.addFirst(executableName(path));
+        return processCommand;
+    }
+
+    private String executableName(Path path) throws IOException {
+        if (canBeExecutedByFileName(path)) {
+            return path.getFileName().toString();
+        }
+        return path.toString();
+    }
+
+    private boolean canBeExecutedByFileName(Path path) throws IOException {
+        var process = process(List.of("which", path.getFileName().toString()));
+        if (process.isAlive() || process.exitValue() != 0) {
+            return false;
+        }
+        return process.inputReader(StandardCharsets.UTF_8).readLine().equals(path.toString());
+    }
+
+    private Process process(List<String> processCommand) throws IOException {
+        return new ProcessBuilder()
+            .command(processCommand)
+            .start();
     }
 }

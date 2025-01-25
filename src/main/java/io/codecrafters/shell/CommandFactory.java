@@ -11,7 +11,8 @@ interface CommandFactory {
     Set<CommandType> commandTypes();
 
     Optional<ExecutableExpression> executableExpression(
-        Path workingDirectory, Command command,
+        Path workingDirectory,
+        Command command,
         ExecutableExpression downstream
     );
 }
