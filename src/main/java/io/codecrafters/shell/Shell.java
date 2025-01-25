@@ -1,10 +1,9 @@
 package io.codecrafters.shell;
 
 import io.codecrafters.shell.iterator.CharacterIterator;
-import io.codecrafters.shell.iterator.InputBufferingIterator;
+import io.codecrafters.shell.iterator.buffer.InputBufferingIterator;
 import io.codecrafters.shell.iterator.expression.Expression;
 import io.codecrafters.shell.iterator.expression.ExpressionIterator;
-import io.codecrafters.shell.iterator.token.TokenIterator;
 
 import java.io.PrintStream;
 import java.io.Reader;
@@ -43,16 +42,19 @@ final class Shell {
         var commandFactories = new LinkedHashSet<CommandFactory>();
         commandFactories.add(BuiltInCommandFactory.from(commandFactories));
         commandFactories.add(new ExternalCommandFactory(externalCommandLocations));
-        var autocomplete = new Autocomplete(commandFactories);
         return new Shell(
             new ExpressionIterator(
-                new TokenIterator(
-                    homeDirectory,
-                    new InputBufferingIterator(
-                        new CharacterIterator(reader),
-                        output,
-                        homeDirectory,
-                        autocomplete::complete
+                new InputBufferingIterator(
+                    new CharacterIterator(reader),
+                    new EchoingInputBuffer(
+                        new StringBuilderInputBuffer(
+                            homeDirectory,
+                            new BellRingingAutocomplete(
+                                new CommandAutocomplete(commandFactories),
+                                output
+                            )
+                        ),
+                        output
                     )
                 )
             ),
@@ -65,7 +67,7 @@ final class Shell {
     EvaluationResult evaluationResult() {
         var workingDirectory = initialWorkingDirectory;
         do {
-            output.print("$ ");   //TODO centralized output
+            output.print("$ ");
             if (!expressionIterator.hasNext()) {
                 return EvaluationResult.SUCCESS;
             }
