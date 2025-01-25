@@ -7,11 +7,7 @@
 # Learn more: https://codecrafters.io/program-interface
 
 set -e # Exit early if any commands fail
-
-(
-  cd "$(dirname "$0")" # Ensure compile steps are run within the repository directory
-  ./.codecrafters/compile.sh
-)
+trap cleanup SIGINT SIGTERM ERR EXIT
 
 path() {
   local path=""
@@ -21,4 +17,10 @@ path() {
   echo "$path"
 }
 
-PATH="$(path mvn dirname stty)" ./.codecrafters/run.sh "$@"
+cleanup() {
+  stty sane
+}
+
+mvn -B package
+stty -icanon -echo
+PATH="$(path mvn dirname stty)" java -jar ./target/codecrafters-shell.jar "$@"
