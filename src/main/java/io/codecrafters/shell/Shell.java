@@ -65,7 +65,7 @@ final class Shell {
     EvaluationResult evaluationResult() {
         var workingDirectory = initialWorkingDirectory;
         do {
-            output.print("$ ");
+            output.print("$ ");   //TODO centralized output
             if (!expressionIterator.hasNext()) {
                 return EvaluationResult.SUCCESS;
             }

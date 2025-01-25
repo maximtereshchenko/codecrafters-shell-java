@@ -5,8 +5,6 @@ import java.util.Set;
 
 final class Autocomplete {
 
-    private static final String RING_BELL = "\u0007";
-    
     private final Set<CommandFactory> commandFactories;
 
     Autocomplete(Set<CommandFactory> commandFactories) {
@@ -22,6 +20,6 @@ final class Autocomplete {
             .map(name -> name.substring(input.length()))
             .map(completed -> completed + " ")
             .findAny()
-            .orElse(RING_BELL);
+            .orElse("");
     }
 }

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 public final class InputBufferingIterator implements Iterator<Character> {
@@ -53,7 +54,13 @@ public final class InputBufferingIterator implements Iterator<Character> {
         while (original.hasNext()) {
             var next = original.next();
             if (next == '\t') {
-                lastToken().map(onTab).ifPresent(this::buffer);
+                lastToken()
+                    .map(onTab)
+                    .filter(Predicate.not(String::isEmpty))
+                    .ifPresentOrElse(
+                        this::buffer,
+                        () -> output.print('\u0007') //TODO centralized output
+                    );
             } else {
                 buffer(next);
             }

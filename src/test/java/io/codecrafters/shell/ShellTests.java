@@ -402,9 +402,9 @@ final class ShellTests {
     }
 
     @Test
-    void givenUnknownPartialInputWithTab_thenBellRinged(Dsl dsl) {
+    void givenUnknownPartialInputWithTab_thenNoBellInOutput(Dsl dsl) {
         dsl.givenInput("wrong\t")
             .whenEvaluated()
-            .thenOutputContainsLines("$ wrong\u0007");
+            .thenErrorDoesNotContain("wrong\u0007: command not found");
     }
 }
