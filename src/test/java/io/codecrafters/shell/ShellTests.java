@@ -400,4 +400,11 @@ final class ShellTests {
             .whenEvaluated()
             .thenOutputContainsLines("$ %s ".formatted(full));
     }
+
+    @Test
+    void givenUnknownPartialInputWithTab_thenBellRinged(Dsl dsl) {
+        dsl.givenInput("wrong\t")
+            .whenEvaluated()
+            .thenOutputContainsLines("$ wrong\u0007");
+    }
 }

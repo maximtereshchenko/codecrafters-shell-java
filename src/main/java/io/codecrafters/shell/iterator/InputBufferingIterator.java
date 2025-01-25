@@ -10,22 +10,22 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public final class InputBufferingIterator implements Iterator<Character> {
 
     private final Iterator<Character> original;
     private final PrintStream output;
     private final Path path;
-    private final Function<String, Optional<String>> onTab;
+    private final UnaryOperator<String> onTab;
     private final StringBuilder buffer = new StringBuilder();
-    private Iterator<Character> sink = Collections.emptyIterator();
+    private Iterator<Character> delegate = Collections.emptyIterator();
 
     public InputBufferingIterator(
         Iterator<Character> original,
         PrintStream output,
         Path path,
-        Function<String, Optional<String>> onTab
+        UnaryOperator<String> onTab
     ) {
         this.original = original;
         this.output = output;
@@ -35,10 +35,10 @@ public final class InputBufferingIterator implements Iterator<Character> {
 
     @Override
     public boolean hasNext() {
-        if (!sink.hasNext()) {
+        if (!delegate.hasNext()) {
             readNextCharacters();
         }
-        return sink.hasNext();
+        return delegate.hasNext();
     }
 
     @Override
@@ -46,15 +46,16 @@ public final class InputBufferingIterator implements Iterator<Character> {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        return sink.next();
+        return delegate.next();
     }
 
     private void readNextCharacters() {
         while (original.hasNext()) {
             var next = original.next();
-            switch (next) {
-                case '\t' -> lastToken().flatMap(onTab).ifPresent(this::buffer);
-                default -> buffer(next);
+            if (next == '\t') {
+                lastToken().map(onTab).ifPresent(this::buffer);
+            } else {
+                buffer(next);
             }
             if (buffer.toString().endsWith(System.lineSeparator())) {
                 flush();
@@ -76,7 +77,7 @@ public final class InputBufferingIterator implements Iterator<Character> {
     }
 
     private void flush() {
-        sink = new CharacterIterator(new StringReader(buffer.toString()));
+        delegate = new CharacterIterator(new StringReader(buffer.toString()));
         buffer.setLength(0);
     }
 
