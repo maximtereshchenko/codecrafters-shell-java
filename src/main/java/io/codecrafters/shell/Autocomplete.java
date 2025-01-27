@@ -1,6 +1,28 @@
 package io.codecrafters.shell;
 
-interface Autocomplete {
+import io.codecrafters.shell.command.CommandFactory;
+import io.codecrafters.shell.command.CommandType;
 
-    String complete(String input);
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+final class Autocomplete {
+
+    private final Set<CommandFactory> commandFactories;
+
+    Autocomplete(Set<CommandFactory> commandFactories) {
+        this.commandFactories = commandFactories;
+    }
+
+    LinkedHashSet<String> completions(String input) {
+        return commandFactories.stream()
+            .map(CommandFactory::commandTypes)
+            .flatMap(Collection::stream)
+            .map(CommandType::name)
+            .filter(name -> name.startsWith(input))
+            .map(name -> name.substring(input.length()))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
 }

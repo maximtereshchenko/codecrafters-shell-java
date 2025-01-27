@@ -56,7 +56,7 @@ final class ShellTests {
                 """
             )
             .whenEvaluated()
-            .thenFinishedWith(EvaluationResult.FAILURE)
+            .thenFinishedWith(1)
             .thenErrorDoesNotContain("should_not_be_evaluated");
     }
 
@@ -326,7 +326,7 @@ final class ShellTests {
         dsl.givenInput("echo content > file")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
-            .thenFinishedWith(EvaluationResult.SUCCESS);
+            .thenFinishedWith(0);
         assertThat(directory.resolve("file")).content().isEqualToIgnoringNewLines("content");
     }
 
@@ -335,7 +335,7 @@ final class ShellTests {
         dsl.givenInput("echo content 1> file")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
-            .thenFinishedWith(EvaluationResult.SUCCESS);
+            .thenFinishedWith(0);
         assertThat(directory.resolve("file")).content().isEqualToIgnoringNewLines("content");
     }
 
@@ -353,7 +353,7 @@ final class ShellTests {
         dsl.givenInput("cd /nonexistent 2> file")
             .givenWorkingDirectory(directory)
             .whenEvaluated()
-            .thenFinishedWith(EvaluationResult.SUCCESS);
+            .thenFinishedWith(0);
         assertThat(directory.resolve("file"))
             .content()
             .isEqualToIgnoringNewLines("cd: /nonexistent: No such file or directory");
@@ -377,7 +377,7 @@ final class ShellTests {
         dsl.givenInput(input)
             .givenWorkingDirectory(directory)
             .whenEvaluated()
-            .thenFinishedWith(EvaluationResult.SUCCESS);
+            .thenFinishedWith(0);
         assertThat(file).content().isEqualToIgnoringNewLines(content);
     }
 

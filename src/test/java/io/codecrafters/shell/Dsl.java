@@ -40,14 +40,14 @@ final class Dsl {
         try {
             return new Success(
                 Shell.from(
+                        homeDirectory,
+                        workingDirectory,
                         new StringReader(input),
                         new PrintStream(output),
                         new PrintStream(error),
-                        homeDirectory,
-                        workingDirectory,
                         externalCommandLocations
                     )
-                    .evaluationResult(),
+                    .exitCode(),
                 lines(output),
                 lines(error)
             );
@@ -87,7 +87,7 @@ final class Dsl {
 
         void thenErrorContainsLines(String... expected);
 
-        Result thenFinishedWith(EvaluationResult evaluationResult);
+        Result thenFinishedWith(int exitCode);
 
         void thenOutputDoesNotContainLine(String notExpected);
 
@@ -98,12 +98,12 @@ final class Dsl {
 
     private static final class Success implements Result {
 
-        private final EvaluationResult evaluationResult;
+        private final int exitCode;
         private final List<String> output;
         private final List<String> error;
 
-        Success(EvaluationResult evaluationResult, List<String> output, List<String> error) {
-            this.evaluationResult = evaluationResult;
+        Success(int exitCode, List<String> output, List<String> error) {
+            this.exitCode = exitCode;
             this.output = output;
             this.error = error;
         }
@@ -120,8 +120,8 @@ final class Dsl {
         }
 
         @Override
-        public Result thenFinishedWith(EvaluationResult evaluationResult) {
-            assertThat(this.evaluationResult).isEqualTo(evaluationResult);
+        public Result thenFinishedWith(int exitCode) {
+            assertThat(this.exitCode).isEqualTo(exitCode);
             return this;
         }
 
@@ -181,7 +181,7 @@ final class Dsl {
         }
 
         @Override
-        public Result thenFinishedWith(EvaluationResult evaluationResult) {
+        public Result thenFinishedWith(int exitCode) {
             return thenOutputContainsLines();
         }
 
