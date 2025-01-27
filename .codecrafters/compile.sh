@@ -1,11 +1,5 @@
-#!/bin/sh
-#
-# This script is used to compile your program on CodeCrafters
-#
-# This runs before .codecrafters/run.sh
-#
-# Learn more: https://codecrafters.io/program-interface
+#!/usr/bin/env bash
 
-set -e # Exit on failure
+set -Eeuo pipefail
 
-mvn -B -Dmaven.test.skip=true package -Ddir=/tmp/codecrafters-build-shell-java
+mvn -B -Dmaven.test.skip=true package

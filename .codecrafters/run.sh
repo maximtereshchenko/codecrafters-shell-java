@@ -1,17 +1,15 @@
-#!/bin/sh
-#
-# This script is used to run your program on CodeCrafters
-#
-# This runs after .codecrafters/compile.sh
-#
-# Learn more: https://codecrafters.io/program-interface
+#!/usr/bin/env bash
 
-set -e # Exit on failure
-trap cleanup SIGINT SIGTERM ERR EXIT
+set -Eeuo pipefail
 
-cleanup() {
-  stty sane
+stream_characters() {
+  while IFS= read -r -s -n1 character; do
+    if [[ "$character" = "" ]]; then
+      printf $'\n'
+    else
+      printf "$character"
+    fi
+  done
 }
 
-stty -icanon -echo
-exec java -jar /tmp/codecrafters-build-shell-java/codecrafters-shell.jar "$@"
+java -jar ./target/codecrafters-shell.jar "$@" < <(stream_characters 2> /dev/null)
