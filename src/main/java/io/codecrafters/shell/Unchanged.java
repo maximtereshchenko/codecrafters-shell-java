@@ -1,3 +1,3 @@
 package io.codecrafters.shell;
 
-record Unchanged() implements AutocompletionResult {}
+record Unchanged(Core core) implements AutocompletionResult {}

@@ -402,10 +402,17 @@ final class ShellTests {
     }
 
     @Test
-    void givenUnknownPartialInputWithTab_thenNoBellInOutput(Dsl dsl) {
+    void givenUnknownPartialInputWithTab_thenNoBellInCommand(Dsl dsl) {
         dsl.givenInput("wrong\t")
             .whenEvaluated()
             .thenErrorDoesNotContain("wrong\u0007: command not found");
+    }
+
+    @Test
+    void givenUnknownPartialInputWithTab_thenOutputContainedBell(Dsl dsl) {
+        dsl.givenInput("wrong\t")
+            .whenEvaluated()
+            .thenOutputContainsLines("$ wrong\u0007");
     }
 
     @Test
@@ -418,5 +425,25 @@ final class ShellTests {
             .givenExternalCommandLocation(directory)
             .whenEvaluated()
             .thenOutputContainsLines("$ executable ");
+    }
+
+    @Test
+    void givenMultiplePossibleCompletions_thenCompletionsPrintedAfterBellRinging(Dsl dsl, @TempDir Path directory) throws IOException {
+        Files.createFile(
+            directory.resolve("executable-first"),
+            PosixFilePermissions.asFileAttribute(Set.of(PosixFilePermission.OWNER_EXECUTE))
+        );
+        Files.createFile(
+            directory.resolve("executable-second"),
+            PosixFilePermissions.asFileAttribute(Set.of(PosixFilePermission.OWNER_EXECUTE))
+        );
+        dsl.givenInput("executable-\t\t")
+            .givenExternalCommandLocation(directory)
+            .whenEvaluated()
+            .thenOutputContainsLines(
+                "$ executable-\u0007",
+                "executable-first  executable-second",
+                "$ executable-"
+            );
     }
 }

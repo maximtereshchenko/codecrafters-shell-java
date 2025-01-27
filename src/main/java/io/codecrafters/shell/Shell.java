@@ -75,7 +75,7 @@ final class Shell {
 
     private Core core() {
         var tokenFactory = new TokenFactory(homeDirectory);
-        return new Core(
+        return new DefaultCore(
             workingDirectory,
             tokenFactory,
             new ExecutableExpressionFactory(
@@ -89,18 +89,25 @@ final class Shell {
     }
 
     private Core autocompleted(Core core) {
-        switch (core.autocompleted()) {
+        return switch (core.autocompleted()) {
             case Autocompleted autocompleted -> {
                 output.printf("%s ", autocompleted.completed());
-                return autocompleted.core();
+                yield autocompleted.core();
             }
-            case MultiplePossibleCompletions(var completions) -> output.println(String.join("  ", completions)); //TODO
-            case Unchanged() -> ringBell();
-        }
-        return core;
+            case MultiplePossibleCompletions completions -> {
+                output.printf("%n%s%n", String.join("  ", completions.completions()));
+                prompt();
+                core.flushBuffer(output);
+                yield completions.core();
+            }
+            case Unchanged unchanged -> {
+                ringBell();
+                yield unchanged.core();
+            }
+        };
     }
 
-    private AfterBuffering afterBuffering(BufferingResult bufferingResult) throws IOException {
+    private AfterBuffering afterBuffering(BufferingResult bufferingResult) {
         return switch (bufferingResult) {
             case Buffered buffered -> new Continue(buffered.core());
             case PreparedToFlush(var flush) -> switch (flush.apply(output, error)) {

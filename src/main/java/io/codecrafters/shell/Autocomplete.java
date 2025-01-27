@@ -22,7 +22,7 @@ final class Autocomplete {
             .flatMap(Collection::stream)
             .map(CommandType::name)
             .filter(name -> name.startsWith(input))
-            .map(name -> name.substring(input.length()))
+            .sorted()
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

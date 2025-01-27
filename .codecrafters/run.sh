@@ -7,7 +7,11 @@
 # Learn more: https://codecrafters.io/program-interface
 
 set -e # Exit on failure
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+cleanup() {
+  stty sane
+}
 
 stty -icanon -echo
 exec java -jar /tmp/codecrafters-build-shell-java/codecrafters-shell.jar "$@"
-stty sane
