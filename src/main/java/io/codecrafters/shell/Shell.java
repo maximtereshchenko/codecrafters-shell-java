@@ -91,7 +91,7 @@ final class Shell {
     private Core autocompleted(Core core) {
         return switch (core.autocompleted()) {
             case Autocompleted autocompleted -> {
-                output.printf("%s ", autocompleted.completed());
+                output.print(autocompleted.completed());
                 yield autocompleted.core();
             }
             case MultiplePossibleCompletions completions -> {

@@ -56,9 +56,9 @@ final class DefaultCore implements Core {
                     )
                 );
             }
-            var completion = completions.getFirst();
+            var completion = completions.getFirst().substring(value.length()) + " ";
             return new Autocompleted(
-                completion.substring(value.length()),
+                completion,
                 withBuffer(new StringBuilder(builder).append(completion))
             );
         }

@@ -446,4 +446,14 @@ final class ShellTests {
                 "$ executable-"
             );
     }
+
+    @Test
+    void givenPartialInputWithTab_thenAutocompletedCommandExecuted(Dsl dsl) {
+        dsl.givenInput("ec\tfirst second")
+            .whenEvaluated()
+            .thenOutputContainsLines(
+                "$ echo first second",
+                "first second"
+            );
+    }
 }
