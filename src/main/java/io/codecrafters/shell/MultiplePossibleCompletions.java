@@ -1,5 +1,5 @@
 package io.codecrafters.shell;
 
-import java.util.LinkedHashSet;
+import java.util.TreeSet;
 
-record MultiplePossibleCompletions(Core core, LinkedHashSet<String> completions) implements AutocompletionResult {}
+record MultiplePossibleCompletions(Core core, TreeSet<String> completions) implements AutocompletionResult {}
