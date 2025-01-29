@@ -6,6 +6,7 @@ import io.codecrafters.shell.token.TokenFactory;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.TreeSet;
 
 final class DefaultCore implements Core {
 
@@ -44,23 +45,7 @@ final class DefaultCore implements Core {
     @Override
     public AutocompletionResult autocompleted() {
         if (tokenFactory.tokens(builder).getLast() instanceof Literal(var value)) {
-            var completions = autocomplete.completions(value);
-            if (completions.isEmpty()) {
-                return new Unchanged(this);
-            }
-            if (completions.size() > 1) {
-                return new Unchanged(
-                    new DelayingMultiplePossibleCompletionsCore(
-                        this,
-                        new MultiplePossibleCompletions(this, completions)
-                    )
-                );
-            }
-            var completion = completions.getFirst().substring(value.length()) + " ";
-            return new Autocompleted(
-                completion,
-                withBuffer(new StringBuilder(builder).append(completion))
-            );
+            return autocompleted(value);
         }
         return new Unchanged(this);
     }
@@ -68,6 +53,53 @@ final class DefaultCore implements Core {
     @Override
     public void flushBuffer(PrintStream output) {
         output.print(builder);
+    }
+
+    private AutocompletionResult autocompleted(String value) {
+        var completions = autocomplete.completions(value);
+        if (completions.isEmpty()) {
+            return new Unchanged(this);
+        }
+        if (completions.size() == 1) {
+            var completion = completions.getFirst().substring(value.length()) + " ";
+            return new Autocompleted(
+                completion,
+                withBuffer(new StringBuilder(builder).append(completion))
+            );
+        }
+        return autocompleted(value, completions);
+    }
+
+    private AutocompletionResult autocompleted(String value, TreeSet<String> completions) {
+        var commonPrefix = commonPrefix(completions).substring(value.length());
+        if (commonPrefix.isEmpty()) {
+            return new Unchanged(
+                new DelayingMultiplePossibleCompletionsCore(
+                    this,
+                    new MultiplePossibleCompletions(this, completions)
+                )
+            );
+        }
+        return new Autocompleted(
+            commonPrefix,
+            withBuffer(new StringBuilder(builder).append(commonPrefix))
+        );
+    }
+
+    private String commonPrefix(TreeSet<String> completions) {
+        return completions.stream()
+            .reduce((first, second) -> first.substring(0, firstDifferentCharacterIndex(first, second)))
+            .orElse("");
+    }
+
+    private int firstDifferentCharacterIndex(String first, String second) {
+        var minLength = Math.min(first.length(), second.length());
+        for (var i = 0; i < minLength; i++) {
+            if (first.charAt(i) != second.charAt(i)) {
+                return i;
+            }
+        }
+        return minLength;
     }
 
     private FlushingResult flush(CharSequence charSequence, PrintStream output, PrintStream error) {

@@ -456,4 +456,20 @@ final class ShellTests {
                 "first second"
             );
     }
+
+    @Test
+    void givenMultiplePossibleCompletionsWithCommonPrefix_thenCommandAutocompletedWithPrefix(Dsl dsl, @TempDir Path directory) throws IOException {
+        Files.createFile(
+            directory.resolve("executable-first"),
+            PosixFilePermissions.asFileAttribute(Set.of(PosixFilePermission.OWNER_EXECUTE))
+        );
+        Files.createFile(
+            directory.resolve("executable-second"),
+            PosixFilePermissions.asFileAttribute(Set.of(PosixFilePermission.OWNER_EXECUTE))
+        );
+        dsl.givenInput("exec\tf\t")
+            .givenExternalCommandLocation(directory)
+            .whenEvaluated()
+            .thenOutputContainsLines("$ executable-first ");
+    }
 }
