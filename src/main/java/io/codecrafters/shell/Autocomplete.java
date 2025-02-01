@@ -12,17 +12,8 @@ final class Autocomplete {
 
     private final Set<CommandFactory> commandFactories;
 
-    private Autocomplete(Set<CommandFactory> commandFactories) {
+    Autocomplete(Set<CommandFactory> commandFactories) {
         this.commandFactories = commandFactories;
-    }
-
-    static Autocomplete from(Set<CommandFactory> commandFactories) {
-        var autocomplete = new Autocomplete(commandFactories);
-        for (var i = 0; i < 30; i++) {
-            //need to warm up the JVM to pass tests in codecrafters.io
-            autocomplete.completions("");
-        }
-        return autocomplete;
     }
 
     TreeSet<String> completions(String input) {

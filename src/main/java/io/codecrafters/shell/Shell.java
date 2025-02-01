@@ -84,7 +84,7 @@ final class Shell {
                     tokenFactory
                 )
             ),
-            Autocomplete.from(commandFactories)
+            new Autocomplete(commandFactories)
         );
     }
 
